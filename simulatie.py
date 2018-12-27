@@ -1,4 +1,4 @@
-import random #moeilijkheidsgraad toets: 1 is heel makkelijk,  0 is onmogelijk
+import random 
 
 #"sleep urge" en "sleep need" afgelezen uit de grafiek uit het artikel van roovers
 slaapbehoefte = [0.95, 0.9, 0.85, 0.75, 0.65, 0.5, 0.4, 0.3, 0.2, 0.1, 0.02, 0.12, 0.3, 0.4, 0.4, 0.32, 0.15, 0.05, 0.02, 0.1, 0.35, 0.65, 0.9, 0.95] 
