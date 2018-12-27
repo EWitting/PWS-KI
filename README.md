@@ -1,5 +1,5 @@
 # PWS-KI
-Deze repositorie bevat de code voor mijn profielwerkstuk over kunstmatige intelligentie en efficiente leermomenten
+Deze repository bevat de code voor mijn profielwerkstuk over kunstmatige intelligentie en efficiente leermomenten
 
 
 De pseudocode voor de simulatie die het leerproces modelleert(gebruikte getallen zijn voorbeelden, niet definitief): 
