@@ -29,9 +29,9 @@ class Simulatie():
             self.os *= self.v
         self.index += 1
   
-    #berekent het cijfer aand de hand van os en een afwijking tussen -1 en 1 met een decimaal, en houdt het binnen 1 en 10 voor als de afwijking een onmogelijk cijfer zou opleveren
+    #berekent het cijfer aand de hand van os en een afwijking tussen -0.5 en 0.5 met een decimaal, en houdt het binnen 1 en 10 voor als de afwijking een onmogelijk cijfer zou opleveren
     def toets(self): 
-        return round(max(min((self.os * self.mg * 9) + 1 + random.randint(-10,10)*0.1 ,10),1),1)
+        return round(max(min((self.os * self.mg * 9) + 1 + random.randint(-5,5)*0.1 ,10),1),1)
     
     
     #voert een aantal stappen uit aan de hand van een lijst met telkens True of False om te bepalen of er wel of niet geleerd moet worden, en geeft een cijfer terug
@@ -40,6 +40,6 @@ class Simulatie():
             self.stap(i)
         return self.toets()
             
-sim = Simulatie(0.4)
-leermomenten = [True,False,False,False,False,True,False,False,False,False,True,False,False] 
+sim = Simulatie(1)
+leermomenten = [True,False,False,False,False,True,False,False,False,False,False,False] 
 print(sim.simuleer(leermomenten))
