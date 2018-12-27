@@ -40,6 +40,3 @@ class Simulatie():
             self.stap(i)
         return self.toets()
             
-sim = Simulatie(1)
-leermomenten = [True,False,False,False,False,True,False,False,False,False,False,False] 
-print(sim.simuleer(leermomenten))
