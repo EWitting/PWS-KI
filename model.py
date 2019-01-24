@@ -62,7 +62,6 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         #index in uren wanneer moet worden geleerd
         leermomenten = heapq.nlargest(self.max_uren, range(len(voorspellingen)), key=voorspellingen.__getitem__) #gebruikt plugin om de <max_uren> hoogste voorspellingen te vinden
         
-        
         beschikbaar = []
         for uur in range(len(schema)):
             if schema[uur]:
@@ -132,7 +131,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         
         if self.prints > 0:
             print('Epsilon : {0}, Cijfer: {1}'.format(round(self.epsilon,3),cijfer))
-        return cijfer
+        return cijfer, leeruren
 
     def train(self, groepsgrootte):
         if len(self.memory) < groepsgrootte: #check om errors te voorkomen
