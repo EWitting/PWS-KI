@@ -6,7 +6,7 @@ from statistics import mean
 from matplotlib import pyplot as plt
 import time
 
-testRange = 50000
+testRange = 20000
 max_uren = 4
 
 ai = model.agent(max_uren,0)
@@ -35,8 +35,12 @@ def randomAgent(schema, factor):
                 if num not in leermomenten:
                     leermomenten.append(num)
                     done = True
+
+    leeruren = [False]*len(schema)
     
-    return sim.simuleer(leermomenten)
+    for i in leermomenten:
+        leeruren[i] = True
+    return sim.simuleer(leeruren)
 
 
 

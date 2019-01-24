@@ -113,7 +113,6 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
 
         if self.prints > 1: 
             print('leeruren gekozen:',leeruren)
-
         cijfer = sim.simuleer(leeruren)
 
         if self.prints > 1: 
