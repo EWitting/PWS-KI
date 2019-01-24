@@ -9,14 +9,12 @@ background_colour = (150,150,150)
 def metHex(schema,hexData):
     tmp = bin(int(hexData, 16))[2:].zfill(len(schema))
     leeruren = []
-    print(tmp)
     
     for i in tmp:
         if i == '1':
             leeruren.append(True)
         else:
             leeruren.append(False)
-    print(leeruren)
     visualiseer(schema, leeruren)
     
 
@@ -88,7 +86,7 @@ def drawBlock(screen, index,x,y):
     
 if __name__ == '__main__':
     schema =   [False,False,False,False,False,False,True,True,False,False,False,False,False,False,False,False,True,True,True,True,True,True,False,False,False,False,False,False,False,False,True,True,False,False,False,False,False,False,False,False,True,True,True,True,True,True,False,False,False,False,False,False,False,False,True,True,False,False,False,False,False,False,False,False,True,True,True,True,True,True,False,False]
-    leeruren = '0x300c0'
+    leeruren = '0x300c0000000000000'
     
     metHex(schema,leeruren)
     

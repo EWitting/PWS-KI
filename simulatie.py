@@ -16,7 +16,7 @@ class Simulatie():
         self.os = 0 # onthouden leerstof tussen 0 en 1
         self.v = 0.9715 # verval
         self.ls = 0.75 # leersnelheid
-        self.vv = 0.5 # verval van verval(voor het effect van herhaald leren)
+        self.vv = 0.6 # verval van verval(voor het effect van herhaald leren)
         self.index = 0 # geeft aan welk uur in de simulatie het is
         
     #stapt 1 uur vooruit in de tijd, waarbij wel of niet geleerd wordt

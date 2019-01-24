@@ -5,12 +5,16 @@ import random
 from statistics import mean
 from matplotlib import pyplot as plt
 import time
+from visualisatie import visualiseer
 
-testRange = 20000
+testRange = 100000
+printOp = 500
 max_uren = 4
+maxTime = 90 #in seconden
+reached = 0
 
 ai = model.agent(max_uren,0)
-schema = [True,True,True,True,False,False,False,True,False,False,True,False,False,False,False,False,False,False,True,True,True,True,False,False,False,True,False,False,True,False,False]
+schema = [False,False,False,False,False,False,True,True,False,False,False,False,False,False,False,False,True,True,True,True,True,True,False,False,False,False,False,False,False,False,True,True,False,False,False,False,False,False,False,False,True,True,True,True,True,True,False,False,False,False,False,False,False,False,True,True,False,False,False,False,False,False,False,False,True,True,True,True,True,True,False,False]
 
 
 
@@ -19,15 +23,17 @@ diffs = []
 
 def randomAgent(schema, factor):
     sim = simulatie.Simulatie(factor)
+    
+    return sim.simuleer(randomUren(schema))
+
+def randomUren(schema):
     beschikbaar = []
     for uur in range(len(schema)):
         if schema[uur]:
             beschikbaar.append(uur)
         
     leermomenten = []
-    
-    
-    
+            
     for i in range(max_uren):
             done = False
             while not done:
@@ -35,13 +41,10 @@ def randomAgent(schema, factor):
                 if num not in leermomenten:
                     leermomenten.append(num)
                     done = True
-
-    leeruren = [False]*len(schema)
-    
+    leeruren = [False]*len(schema)    
     for i in leermomenten:
         leeruren[i] = True
-    return sim.simuleer(leeruren)
-
+    return leeruren
 
 
 t0 = time.time()
@@ -51,23 +54,34 @@ def eta(i):
     snelheid = i / bezig
     return round((testRange - i)/snelheid)
     
-
+done = False
 for i in range(testRange):
-    factor = random.uniform(0.5,0.9)
-    resultaat = ai.voorspel(schema,factor,True,0)
-    diff = resultaat - randomAgent(schema,factor)
-    hist.append(resultaat)
-    diffs.append(diff)
-    if i% 10 == 0 and i is not 0:
-        ai.train(min(max_uren*i,200))
-    if i % round(testRange/20) == 0 and i is not 0:
-        string = 'ETA: {6} seconden ,Simulatie: {0}, Aantal keer model getraind: {1}, Grootte geheugen: {2}, Cijfer: {3}, Verschil met controle: {4}, Epsilon: {5}'
-        print(string.format(i, round(i/10) ,len(ai.memory) ,resultaat ,round(diff,1) ,round(ai.epsilon,2),eta(i)))
+    if not done:
+        factor = random.uniform(0.5,0.9)
+        resultaat, leeruren, ID = ai.voorspel(schema,factor,True,0)
+        diff = resultaat - randomAgent(schema,factor)
+        hist.append(resultaat)
+        diffs.append(diff)
+        if i% 10 == 0 and i is not 0:
+            ai.train(min(max_uren*i,200))
+        if i % round(printOp) == 0 and i is not 0:
+            string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Grootte geheugen: {1}, Cijfer: {2}, Verschil met controle: {3}, Epsilon: {4}, ID: {7}'
+            print(string.format(i,len(ai.memory) ,resultaat ,round(diff,1) ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID))
+            if time.time() - t0 > maxTime:
+                done = True
+                if reached is 0:
+                    reached = i
+
+if reached is 0:
+    reached = testRange
 
 print(round(time.time()-t0,1),'seconden')
 
+cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0)
+visualiseer(schema,uren)
+visualiseer(schema,randomUren(schema))
 
-N = round(testRange/20)
+N = round(reached/20)
 
 cumsum, moving_aves = [0], []
 
