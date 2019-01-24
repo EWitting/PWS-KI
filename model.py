@@ -11,9 +11,8 @@ import random
 
 import simulatie
 
-class agent: #agent is een ander woord voor "een AI" in machine learning
-    
-    def getID(self, binary): #maakt  van een lijst van true en false één getal om beter aan te kunnen herkennen.
+
+def getID(binary): #maakt  van een lijst van true en false één getal om beter aan te kunnen herkennen.
         tmp = ''
         
         #maak van true 1 en false 2. Voorbeeld:
@@ -23,10 +22,16 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
                 tmp += '1'
             else:
                 tmp += '0'
-        
+                
         #standaardfunctie die binaire string omzet in decimaal en dan hexadecimaal. voorbeeld:
         #'1011' ===> 11 ===> 0xB
-        return hex(int(tmp, 2)) 
+        return hex(int(tmp, 2))
+    
+class agent: #agent is een ander woord voor "een AI" in machine learning
+    
+    
+        
+        
     
     def __init__(self, max_uren,prints):
         self.prints = prints
@@ -146,9 +151,11 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         
         if self.prints > 0:
             print('Epsilon : {0}, Cijfer: {1}'.format(round(self.epsilon,3),cijfer))
-        return cijfer, leeruren, self.getID(leeruren)
+        return cijfer, leeruren, getID(leeruren)
+
 
     def train(self, groepsgrootte):
+        
         if len(self.memory) < groepsgrootte: #check om errors te voorkomen
             print('Niet genoeg experiences in geheugen! het zijn er maar:',len(self.memory))
             return

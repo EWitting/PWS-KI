@@ -1,6 +1,6 @@
 import pygame
 import math
-import binascii
+import model
 
 x_dim = 100
 y_dim = 30
@@ -15,7 +15,7 @@ def metHex(schema,hexData):
             leeruren.append(True)
         else:
             leeruren.append(False)
-    visualiseer(schema, leeruren)
+    return leeruren
     
 
 def preProcess(schema,leeruren):
@@ -29,15 +29,13 @@ def preProcess(schema,leeruren):
             rooster.append(0)
     return rooster
             
-def visualiseer(schema,leeruren):
+def visualiseer(schema,leeruren,screenshot):
     planning = preProcess(schema,leeruren)
     pygame.init()
     pygame.display.set_caption('visualisatie van planning')
     
     dagen = math.ceil(len(planning)/24)
     
-    print(len(planning),dagen)
-
     screen = pygame.display.set_mode((x_dim*dagen,y_dim*24))
     screen.fill(background_colour)
     
@@ -64,8 +62,10 @@ def visualiseer(schema,leeruren):
             
             drawBlock(screen, planning[i],loc[0],loc[1])
             loc[1] += y_dim
-            
         
+        if screenshot:
+            pygame.image.save(screen,"Screenshots/" + model.getID(leeruren)+".jpg")
+            done = True
         
         pygame.display.flip()
         clock.tick(30)
@@ -86,7 +86,7 @@ def drawBlock(screen, index,x,y):
     
 if __name__ == '__main__':
     schema =   [False,False,False,False,False,False,True,True,False,False,False,False,False,False,False,False,True,True,True,True,True,True,False,False,False,False,False,False,False,False,True,True,False,False,False,False,False,False,False,False,True,True,True,True,True,True,False,False,False,False,False,False,False,False,True,True,False,False,False,False,False,False,False,False,True,True,True,True,True,True,False,False]
-    leeruren = '0x300c0000000000000'
+    leeruren = '0x7c'
     
-    metHex(schema,leeruren)
+    visualiseer(schema,metHex(schema,leeruren))
     

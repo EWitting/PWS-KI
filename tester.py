@@ -7,9 +7,10 @@ from matplotlib import pyplot as plt
 import time
 from visualisatie import visualiseer
 
+
 testRange = 100000
 printOp = 500
-max_uren = 4
+max_uren = 5
 maxTime = 90 #in seconden
 reached = 0
 
@@ -67,6 +68,7 @@ for i in range(testRange):
         if i % round(printOp) == 0 and i is not 0:
             string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Grootte geheugen: {1}, Cijfer: {2}, Verschil met controle: {3}, Epsilon: {4}, ID: {7}'
             print(string.format(i,len(ai.memory) ,resultaat ,round(diff,1) ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID))
+            visualiseer(schema,leeruren,True)
             if time.time() - t0 > maxTime:
                 done = True
                 if reached is 0:
@@ -78,8 +80,8 @@ if reached is 0:
 print(round(time.time()-t0,1),'seconden')
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0)
-visualiseer(schema,uren)
-visualiseer(schema,randomUren(schema))
+visualiseer(schema,uren,True)
+visualiseer(schema,randomUren(schema),True)
 
 N = round(reached/20)
 
