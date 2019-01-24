@@ -14,7 +14,7 @@ class Simulatie():
     def __init__(self,moeilijkheidsgraad):
         self.mg = moeilijkheidsgraad #moeilijkheidsgraad van toets tussen 0 en 1, 0 is onmogelijk en 1 is heel makkelijk
         self.os = 0 # onthouden leerstof tussen 0 en 1
-        self.v = 0.9715 # verval
+        self.v = 0.95 # verval
         self.ls = 0.75 # leersnelheid
         self.vv = 0.6 # verval van verval(voor het effect van herhaald leren)
         self.index = 0 # geeft aan welk uur in de simulatie het is
@@ -30,13 +30,13 @@ class Simulatie():
         self.index += 1
   
     #berekent het cijfer aand de hand van os en een afwijking tussen -0.5 en 0.5 met een decimaal, en houdt het binnen 1 en 10 voor als de afwijking een onmogelijk cijfer zou opleveren
-    def toets(self): 
-        return round(max(min((self.os * self.mg * 9) + 1 + random.randint(-5,5)*0.1 ,10),1),1)
+    def toets(self,rand): 
+        return round(max(min((self.os * self.mg * 9) + 1 + random.randint(-5,5)*rand ,10),1),1)
     
     
     #voert een aantal stappen uit aan de hand van een lijst met telkens True of False om te bepalen of er wel of niet geleerd moet worden, en geeft een cijfer terug
-    def simuleer(self,leermomenten): 
+    def simuleer(self,leermomenten,rand): 
         for i in leermomenten:
             self.stap(i)
-        return self.toets()
+        return self.toets(rand)
             

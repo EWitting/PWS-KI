@@ -36,7 +36,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
     def __init__(self, max_uren,prints):
         self.prints = prints
         self.model = self.createModel() #start functie om model te maken en bewaar het in self.model
-        self.memory = deque(maxlen=10000) #verzameling van experiences, wordt automatisch op maximum lengte gehouden om te voorkomen dat te oude experiences worden gebruikt
+        self.memory = deque(maxlen=50000) #verzameling van experiences, wordt automatisch op maximum lengte gehouden om te voorkomen dat te oude experiences worden gebruikt
 
         self.epsilon = 1.0  #bepaalt kans om een willekeurige actie te nemen, zo kan de AI beginnen met uitproberen en daarna steeds meer gericht "keuzes maken"
         self.epsilon_min = 0.01 #minimum waarde van epsilon
@@ -68,7 +68,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         network.add(Dense(1,activation = 'softplus'))
 
         #parameters voor keras instellen, dit zijn de gebruikelijkste standaard parameters
-        network.compile(loss = 'mse', optimizer = Adam(lr=0.01))
+        network.compile(loss = 'mse', optimizer = Adam(lr=0.001))
 
         if self.prints > 1: 
             print('Model is gecompiled')
@@ -105,7 +105,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
 
         return leeruren
 
-    def voorspel(self, schema, moeilijkheidsgraad, onthoud, prints):
+    def voorspel(self, schema, moeilijkheidsgraad, onthoud, prints,rand):
         self.prints = prints
         sim = simulatie.Simulatie(moeilijkheidsgraad)
         if self.prints > 1: 
@@ -132,7 +132,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
 
         if self.prints > 1: 
             print('leeruren gekozen:',leeruren)
-        cijfer = sim.simuleer(leeruren)
+        cijfer = sim.simuleer(leeruren, rand)
 
         if self.prints > 1: 
             print('cijfer berekend:',cijfer)
