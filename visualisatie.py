@@ -5,7 +5,8 @@ import time
 
 x_dim = 100
 y_dim = 30
-padding = 30
+left = 30
+top = 30
 
 background_colour = (50,50,50)
 
@@ -39,35 +40,38 @@ def visualiseer(schema,leeruren,screenshot):
     
     dagen = math.ceil(len(planning)/24)
     
-    screen = pygame.display.set_mode((x_dim*dagen+padding,y_dim*24))
+    screen = pygame.display.set_mode((x_dim*dagen+left,y_dim*24+top))
     screen.fill(background_colour)
+    #pygame.display.iconify()
     
     clock = pygame.time.Clock()
     
     done = False
     
     pygame.font.init() 
-    
-    texts = []
-    
+    lefts = []
+    tops = []
+    dagTeksten = ['zo','ma','di','wo','do','vr']
     myFont = pygame.font.SysFont('Arial', y_dim)
     
     for i in range(24):
-        texts.append(myFont.render(str(i), False, (255, 255, 255)))
+        lefts.append(myFont.render(str(i), False, (255, 255, 255)))
+        
+    for i in range(dagen):
+        tops.append(myFont.render(dagTeksten[i], False, (255, 255, 255)))
+    
     
     while not done:
         for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                        done = True   
-                        
+                        done = True                           
         #reset
-        screen.fill(background_colour)
+        screen.fill(background_colour)        
         
-        
-        loc = [padding,0]
+        loc = [left,top]
         for i in range(len(planning)):
             if i % 24 == 0 and i != 0:
-                loc[1] = 0
+                loc[1] = top
                 loc[0] += x_dim
             
             isLast = False
@@ -76,22 +80,26 @@ def visualiseer(schema,leeruren,screenshot):
             drawBlock(screen, planning[i],loc[0],loc[1],isLast)
             loc[1] += y_dim
         
-        for x, text in enumerate(texts,0):
-            screen.blit(text,(0,y_dim * x))
-        
-        
+        for x, text in enumerate(lefts,0):
+            screen.blit(text,(0,top + y_dim * x))
+            
+        for x, dag in enumerate(tops,0):
+            screen.blit(dag,(x_dim*x + left,0))
+                
         if screenshot:
+            
             t = time.localtime()
             timestamp = time.strftime('%b-%d-%Y_%H%M', t)
             pygame.image.save(screen,"Screenshots/" + timestamp + "_" + getID(leeruren) +".jpg")
             done = True
-        
-        
+                
         pygame.display.flip()
         clock.tick(30)
 
         if done:
             pygame.quit()
+
+
 
 def drawBlock(screen, index,x,y,isLast):
     col = (50,50,50)
@@ -111,14 +119,16 @@ if __name__ == '__main__':
         #zondag
     schema =[False,False,False,False,False,False,False,False,False,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,False,False,False,False,
         #maadag
-        False,False,False,False,False,False,True ,False,False,False,False,False,False,False,False,True,True ,False ,False ,False,False,False,False,False,
+        False,False,False,False,False,False,False ,False,False,False,False,False,False,False,False,True,True ,False ,False ,False,False,False,False,False,
         #dinsdag
-        False,False,False,False,False,False,True ,False,False,False,False,False,False,False,True,True,True ,True ,False ,False,False,False,False,False,
+        False,False,False,False,False,False,False ,False,False,False,False,False,False,False,True,True,True ,True ,False ,False,False,False,False,False,
         #woensdag
-        False,False,False,False,False,False,True,False,False,False,False,False,False,False,False,False,True,True,True,True,False,False,False,False,
+        False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,True,True,True,True,False,False,False,False,
         #donderdag
-        False,False,False,False,False,False,True,False,False,False,False,False,False]
-    leeruren = '0x78040'
+        False,False,False,False,False,False,False ,False,False,False,False,False,False,False,False,True,True ,False ,False ,False,False,False,False,False,
+        #vrijdag
+        False,False,False,False,False,False,False,False,False,False,False,False,False]
+    leeruren = '0x0'
     
     visualiseer(schema,metHex(schema,leeruren),False)
     

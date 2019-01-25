@@ -8,6 +8,7 @@ from collections import deque
 import numpy as np
 import heapq
 import random
+import math
 
 import simulatie
 
@@ -36,14 +37,13 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
     def __init__(self, max_uren,prints):
         self.prints = prints
         self.model = self.createModel() #start functie om model te maken en bewaar het in self.model
-        self.memory = deque(maxlen=50000) #verzameling van experiences, wordt automatisch op maximum lengte gehouden om te voorkomen dat te oude experiences worden gebruikt
+        self.memory = deque(maxlen=200000) #verzameling van experiences, wordt automatisch op maximum lengte gehouden om te voorkomen dat te oude experiences worden gebruikt
 
         self.epsilon = 1.0  #bepaalt kans om een willekeurige actie te nemen, zo kan de AI beginnen met uitproberen en daarna steeds meer gericht "keuzes maken"
         self.epsilon_min = 0.01 #minimum waarde van epsilon
         self.epsilon_verval = 0.9975 #hoe snel epsilon kleiner wordt
 
         self.max_uren = max_uren #bepaald aantal uren dat mag worden uitgekozen om op te leren
-
 
     def createModel(self):
         if self.prints > 1: 
@@ -56,13 +56,15 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         #input dim: bepaalt het aantal factoren dat als invoer wordt gebruikt
         #activation: de functie die aan elk neuron wordt toegevoegd, sigmoid is om elk getal tussen 0 en 1 te "proppen".
         #Dit voorkomt dat factoren met gemiddeld grote getallen meer invloed hebben op de uitkomst
-        network.add(Dense(16,input_dim = 3,activation='sigmoid'))
+        network.add(Dense(16,input_dim = 5,activation='sigmoid'))
 
         #linear betekent dat geen speciale functie wordt gebruikt
         network.add(Dense(16,activation = 'linear'))
 
         #dropout voorkomt overfitting door met een bepaalde kans neuronen te laten negeren, dit voorkomt dat alles maar op één manier werkt
         network.add(Dropout(0.05))
+        
+        network.add(Dense(8, activation = 'linear'))        
 
         #één output in de laatste laag, namelijk het verwachtte cijfer. softplus maakt alle getallen positief(de negatieve getallen zullen wel altijd kleiner blijven) om beter mee te kunnen werken
         network.add(Dense(1,activation = 'softplus'))
@@ -115,10 +117,12 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         situaties = []
         for uur in range(len(schema)):
             if schema[uur]:
+                dagTotToets = math.ceil(uur/24) - math.ceil(len(schema)/24)
                 tijd = uur % 24 # tijd van de dag in uren
+                tijdTotNacht = 24 - uur #========================================================================
                 tijdTotToets = len(schema) - uur #aantal uren tot de toets is
-                invoer = np.array([tijd,tijdTotToets,moeilijkheidsgraad]) #zet invoer om in numpy array, een formaat dat door keras wordt gebruikt
-                invoer = invoer.reshape(1,3)
+                invoer = np.array([dagTotToets,tijd,tijdTotNacht,tijdTotToets,moeilijkheidsgraad]) #zet invoer om in numpy array, een formaat dat door keras wordt gebruikt
+                invoer = invoer.reshape(1,5)
                 situaties.append(invoer)
                 voorspellingen.append((self.model.predict(invoer))[0][0])
             else:
@@ -162,7 +166,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
 
         groep = random.sample(self.memory, groepsgrootte)
 
-        invoer = np.empty((groepsgrootte,3))
+        invoer = np.empty((groepsgrootte,5))
         uitkomsten = np.empty((groepsgrootte,1))
 
         for i in range(len(groep)):
