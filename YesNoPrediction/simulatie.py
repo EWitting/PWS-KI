@@ -21,14 +21,16 @@ class Simulatie():
         self.ls_verval = 0.5 #hoe snel je effectiviteit verlaagt als je te vaak achter elkaar leert
         self.vv = 0.5 # verval van verval(voor het effect van herhaald leren)
         self.index = 0 # geeft aan welk uur in de simulatie het is
+        self.straf = 0
         
     #stapt 1 uur vooruit in de tijd, waarbij wel of niet geleerd wordt
-    def stap(self, geleerd): 
+    def stap(self, geleerd,penalty): 
         tijd = self.index % 24 #vindt het uur van de dag voor gebruik door vermoeidheidsfactor 
         if geleerd:
             self.os += self.ls*(1-vmf[tijd])*(1-self.os)
             self.ls *= self.ls_verval
             self.v += self.vv*(1 - self.v)*(0.5 + 0.5*self.ls)
+            self.straf += penalty
             
         else:
             self.os *= self.v
@@ -37,20 +39,21 @@ class Simulatie():
   
     #berekent het cijfer aand de hand van os en een afwijking tussen -0.5 en 0.5 met een decimaal, en houdt het binnen 1 en 10 voor als de afwijking een onmogelijk cijfer zou opleveren
     def toets(self,rand): 
-        return round(max(min((self.os * self.mg * 9) + 1 + random.randint(-5,5)*rand ,10),1),1)
+        cijfer = round(max(min((self.os * self.mg * 9) + 1 + random.randint(-5,5)*rand ,10),1),1)
+        return cijfer, round(cijfer - self.straf,1)
     
     
     #voert een aantal stappen uit aan de hand van een lijst met telkens True of False om te bepalen of er wel of niet geleerd moet worden, en geeft een cijfer terug
-    def simuleer(self,leermomenten,rand): 
+    def simuleer(self,leermomenten,rand,penalty): 
         for i in leermomenten:
-            self.stap(i)
+            self.stap(i,penalty)
         return self.toets(rand)
     
     #voert een aantal stappen uit aan de hand van een lijst met telkens True of False om te bepalen of er wel of niet geleerd moet worden, en geeft een cijfer terug
     def plot(self,leermomenten,rand): 
         hist = []
         for i in leermomenten:
-            self.stap(i)
+            self.stap(i,0)
             hist.append(self.os)
         plt.plot(hist)
         plt.show()
