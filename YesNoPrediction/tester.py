@@ -40,7 +40,7 @@ test = []
 def randomAgent(schema, factor, penalty):
     sim = simulatie.Simulatie(factor)
     
-    return sim.simuleer(randomUren(schema),0.1,penalty)[0]
+    return sim.simuleer(randomUren(schema),0.1,penalty)[1]
 
 def randomUren(schema):
     beschikbaar = []
