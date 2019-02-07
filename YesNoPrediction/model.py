@@ -6,9 +6,7 @@ K.image_dim_ordering
 
 from collections import deque
 import numpy as np
-import heapq
 import random
-import math
 
 import simulatie
 
@@ -37,11 +35,11 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
     def __init__(self, max_uren,prints):
         self.prints = prints
         self.model = self.createModel() #start functie om model te maken en bewaar het in self.model
-        self.memory = deque(maxlen=200000) #verzameling van experiences, wordt automatisch op maximum lengte gehouden om te voorkomen dat te oude experiences worden gebruikt
+        self.memory = deque(maxlen=50000) #verzameling van experiences, wordt automatisch op maximum lengte gehouden om te voorkomen dat te oude experiences worden gebruikt
 
-        self.epsilon = 0.2  #bepaalt kans om een willekeurige actie te nemen, zo kan de AI beginnen met uitproberen en daarna steeds meer gericht "keuzes maken"
+        self.epsilon = 0.5  #bepaalt kans om een willekeurige actie te nemen, zo kan de AI beginnen met uitproberen en daarna steeds meer gericht "keuzes maken"
         self.epsilon_min = 0.01 #minimum waarde van epsilon
-        self.epsilon_verval = 0.9975 #hoe snel epsilon kleiner wordt
+        self.epsilon_verval = 0.999 #hoe snel epsilon kleiner wordt
 
         self.max_uren = max_uren #bepaald aantal uren dat mag worden uitgekozen om op te leren
 
@@ -60,9 +58,10 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         network.add(Dense(16,input_dim = 7,activation='sigmoid'))
 
         #linear betekent dat geen speciale functie wordt gebruikt
+        network.add(Dense(32,activation = 'linear'))
         network.add(Dense(16,activation = 'linear'))
-
-        #dropout voorkomt overfitting door met een bepaalde kans neuronen te laten negeren, dit voorkomt dat alles maar op één manier werkt
+         
+        #dropout voorkomt overfitting door met een bepaalde kans neuronen te laten uitvallen, dit voorkomt dat alles maar op één manier werkt
         network.add(Dropout(0.05))
         
         network.add(Dense(8, activation = 'linear'))        
@@ -82,10 +81,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         self.memory.append((situatie,cijfer,geleerd))
 
     def choose(self, voorspellingen, schema):# kiest uren waarop moet worden geleerd aan de hand van de voorspellingen
-        '''
-        #index in uren wanneer moet worden geleerd
-        leermomenten = heapq.nlargest(self.max_uren, range(len(voorspellingen)), key=voorspellingen.__getitem__) #gebruikt plugin om de <max_uren> hoogste voorspellingen te vinden
-        '''
+
         leermomenten = []
         for uur in range(len(voorspellingen)):
             if schema[uur] and voorspellingen[uur]:
@@ -124,7 +120,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
 
         return leeruren
 
-    def voorspel(self, schema, moeilijkheidsgraad, onthoud, prints,rand,penalty,**kwargs):
+    def voorspel(self, schema, moeilijkheidsgraad, onthoud, prints,rand,penalty):
         self.prints = prints
         sim = simulatie.Simulatie(moeilijkheidsgraad)
         if self.prints > 1: 
@@ -174,11 +170,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
             print('leeruren gekozen:',leeruren)
             
         cijfer = sim.simuleer(leeruren, rand, penalty)
-        if 'metPenalty' in kwargs:
-            if kwargs['metPenalty'] == False:
-                cijfer = cijfer[0]
-        else:
-            cijfer = cijfer[1]
+        cijfer = cijfer[1]
             
         if self.prints > 1: 
             print('cijfer berekend:',cijfer)

@@ -1,6 +1,7 @@
 import time
 startt = time.time()
 
+import math
 import model
 import simulatie
 import random
@@ -11,11 +12,19 @@ from visualisatie import visualiseer
 
 
 
-testRange = 5000
-printOp = 250
+testRange = 15000
+printOp = 500
 max_uren = 5
 maxTime = 120 #in seconden
 reached = 0
+
+#tussen bs_epochs_start en bs_epochs_max wordt de batch_size voor het trainen verhoogd.  https://arxiv.org/abs/1711.00489
+batch_size_start = 32
+batch_size_max = 512
+bs_epochs_start = 500
+bs_epochs_max = 4000
+batch_size = batch_size_start
+
 
 ai = model.agent(max_uren,0)
 
@@ -40,7 +49,7 @@ test = []
 def randomAgent(schema, factor, penalty):
     sim = simulatie.Simulatie(factor)
     
-    return sim.simuleer(randomUren(schema),0.1,penalty)[0]
+    return sim.simuleer(randomUren(schema),0.1,penalty)[1]
 
 def randomUren(schema):
     beschikbaar = []
@@ -74,19 +83,27 @@ done = False
 for i in range(testRange):
     if not done:
         factor = random.uniform(0.5,0.9)
-        penalty = random.uniform(0.1,0.7)
+        penalty = random.uniform(0.1,1.5)
         resultaat, leeruren, ID = ai.voorspel(schema,factor,True,0,0.1,penalty)
         diff = resultaat - randomAgent(schema,factor, penalty)
         hist.append(resultaat)
         diffs.append(diff)
         validation = (ai.voorspel(schema,0.8,False,0,0,0.4)[0])
         test.append(validation)
-        if i% 25 == 0 and i is not 0:
-            ai.train(min(max_uren*i,16))
+        if i% 10 == 0 and i > batch_size:
+            
+            if i < bs_epochs_start:
+                batch_size = batch_size_start
+            elif i < bs_epochs_max:
+                batch_size = math.floor(batch_size_start + (i - bs_epochs_start) / (bs_epochs_max - bs_epochs_start) * (batch_size_max - batch_size_start))
+            else:
+                batch_size = batch_size_max
+            ai.train(batch_size)
+            
         if i % round(printOp) == 0 and i is not 0:
-            string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Validation: {1}, Cijfer: {2}, Verschil met controle: {3}, Epsilon: {4}, ID: {7}'
-            print(string.format(i,validation ,resultaat ,round(diff,1) ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID))
-            visualiseer(schema,leeruren,True)
+            string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Validation: {1}, Cijfer: {2}, Batch Size {3}, Epsilon: {4}, ID: {7}, penalty: {8}'
+            print(string.format(i,validation ,resultaat ,batch_size ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID.replace('0',''),penalty))
+            visualiseer(schema,ai.voorspel(schema,0.75,False,0,0,0.7),True)
             if time.time() - t0 > maxTime:
                 done = True
                 if reached is 0:
@@ -100,12 +117,25 @@ print(round(time.time()-t0,1),'seconden')
 
 
 
-cijfer, uren, ID = ai.voorspel(schema, 0.75,False,2,0.1,0.4)
+cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,1.5)
 visualiseer(schema,uren,True)
 sim = simulatie.Simulatie(0.8)
-print(sim.plot(uren, 0.1))
+print('met penalty 0.7',sim.plot(uren, 1.5))
 
+cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,1)
+visualiseer(schema,uren,True)
+sim = simulatie.Simulatie(0.8)
+print('penalty 0.5',sim.plot(uren, 1))
 
+cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,0.5)
+visualiseer(schema,uren,True)
+sim = simulatie.Simulatie(0.8)
+print('penalty 0.3',sim.plot(uren, 0.5))
+
+cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,0.1)
+visualiseer(schema,uren,True)
+sim = simulatie.Simulatie(0.8)
+print('penalty 0.1',sim.plot(uren, 0.1))
 
 
 N = round(reached/20)

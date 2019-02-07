@@ -16,8 +16,8 @@ class Simulatie():
         self.mg = moeilijkheidsgraad #moeilijkheidsgraad van toets tussen 0 en 1, 0 is onmogelijk en 1 is heel makkelijk
         self.os = 0 # onthouden leerstof tussen 0 en 1
         self.v = 0.975 # verval
-        self.ls = 0.8 # leersnelheid
-        self.max_ls = 0.9 #max leersnelheid
+        self.max_ls = 0.75 #max leersnelheid
+        self.ls = self.max_ls # leersnelheid
         self.ls_verval = 0.5 #hoe snel je effectiviteit verlaagt als je te vaak achter elkaar leert
         self.vv = 0.5 # verval van verval(voor het effect van herhaald leren)
         self.index = 0 # geeft aan welk uur in de simulatie het is
@@ -50,14 +50,15 @@ class Simulatie():
         return self.toets(rand)
     
     #voert een aantal stappen uit aan de hand van een lijst met telkens True of False om te bepalen of er wel of niet geleerd moet worden, en geeft een cijfer terug
-    def plot(self,leermomenten,rand): 
+    def plot(self,leermomenten,penalty): 
         hist = []
         for i in leermomenten:
-            self.stap(i,0)
+            self.stap(i,penalty)
             hist.append(self.os)
         plt.plot(hist)
         plt.show()
-        return self.toets(rand)
+        print(penalty)
+        return self.toets(0.1)
     
     
 if __name__ == "__main__":
