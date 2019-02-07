@@ -90,7 +90,7 @@ for i in range(testRange):
         diffs.append(diff)
         validation = (ai.voorspel(schema,0.8,False,0,0,0.4)[0])
         test.append(validation)
-        if i% 10 == 0 and i > batch_size:
+        if i% math.floor(batch_size/2) == 0 and i > batch_size:
             
             if i < bs_epochs_start:
                 batch_size = batch_size_start
@@ -103,7 +103,7 @@ for i in range(testRange):
         if i % round(printOp) == 0 and i is not 0:
             string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Validation: {1}, Cijfer: {2}, Batch Size {3}, Epsilon: {4}, ID: {7}, penalty: {8}'
             print(string.format(i,validation ,resultaat ,batch_size ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID.replace('0',''),penalty))
-            visualiseer(schema,ai.voorspel(schema,0.75,False,0,0,0.7),True)
+            visualiseer(schema,ai.voorspel(schema,0.75,False,0,0,0.7)[1],True)
             if time.time() - t0 > maxTime:
                 done = True
                 if reached is 0:
