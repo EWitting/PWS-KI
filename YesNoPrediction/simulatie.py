@@ -29,7 +29,7 @@ class Simulatie():
         if geleerd:
             self.os += self.ls*(1-vmf[tijd])*(1-self.os)
             self.ls *= self.ls_verval
-            self.v += self.vv*(1 - self.v)*(0.5 + 0.5*self.ls)
+            self.v += self.vv*(1 - self.v)*self.ls
             self.straf += penalty
             
         else:

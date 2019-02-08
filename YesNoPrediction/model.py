@@ -1,6 +1,7 @@
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.optimizers import Adam
+from keras.callbacks import History 
 from keras import backend as K
 K.image_dim_ordering
 
@@ -39,7 +40,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
 
         self.epsilon = 0.5  #bepaalt kans om een willekeurige actie te nemen, zo kan de AI beginnen met uitproberen en daarna steeds meer gericht "keuzes maken"
         self.epsilon_min = 0.01 #minimum waarde van epsilon
-        self.epsilon_verval = 0.999 #hoe snel epsilon kleiner wordt
+        self.epsilon_verval = 0.9975 #hoe snel epsilon kleiner wordt
 
         self.max_uren = max_uren #bepaald aantal uren dat mag worden uitgekozen om op te leren
 
@@ -198,6 +199,8 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
             print('Niet genoeg experiences in geheugen! het zijn er maar:',len(self.memory))
             return
 
+        
+
         groep = random.sample(self.memory, groepsgrootte)
 
         invoer = np.empty((groepsgrootte,7))
@@ -213,8 +216,11 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
             else:   #niet geleerd bij die situatie, hier precies omgekeerd
                 uitkomsten[i][1] = groep[i][1] #maak no output de echte uikomst 
                 uitkomsten[i][0] = self.model.predict(tmp)[0][0] #gebruik voorspelling als invoer, model hoeft dus niet te veranderen
-                
-        self.model.fit(invoer,uitkomsten,epochs=1,verbose=0)
+            
+        hist = History()
+        self.model.fit(invoer,uitkomsten,epochs=1,verbose=0, callbacks=[hist])
 
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_verval
+            
+        return hist.history['loss'][0]
