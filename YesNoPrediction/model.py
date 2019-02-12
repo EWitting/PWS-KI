@@ -38,9 +38,9 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         self.model = self.createModel() #start functie om model te maken en bewaar het in self.model
         self.memory = deque(maxlen=50000) #verzameling van experiences, wordt automatisch op maximum lengte gehouden om te voorkomen dat te oude experiences worden gebruikt
 
-        self.epsilon = 0.5  #bepaalt kans om een willekeurige actie te nemen, zo kan de AI beginnen met uitproberen en daarna steeds meer gericht "keuzes maken"
+        self.epsilon = 1  #bepaalt kans om een willekeurige actie te nemen, zo kan de AI beginnen met uitproberen en daarna steeds meer gericht "keuzes maken"
         self.epsilon_min = 0.01 #minimum waarde van epsilon
-        self.epsilon_verval = 0.9975 #hoe snel epsilon kleiner wordt
+        self.epsilon_verval = 0.99975 #hoe snel epsilon kleiner wordt
 
         self.max_uren = max_uren #bepaald aantal uren dat mag worden uitgekozen om op te leren
 
@@ -87,33 +87,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         for uur in range(len(voorspellingen)):
             if schema[uur] and voorspellingen[uur]:
                 leermomenten.append(uur)
-        
-        beschikbaar = []
-        for uur in range(len(schema)):
-            if schema[uur]:
-                beschikbaar.append(uur)
-              
-        while len(leermomenten) < 5:
-            done = False
-            while not done:
-                num = random.choice(beschikbaar)    
-                if num not in leermomenten:
-                    leermomenten.append(num)
-                    done = True
-        
-        extra_uren = 0
-        for i in range(len(beschikbaar)):
-            if self.epsilon > random.random():
-                num = random.choice(beschikbaar)    
-                if num not in leermomenten:
-                    leermomenten.append(num)
-                    extra_uren += 1
-                else:
-                    leermomenten.remove(num)
-            if extra_uren > 5:
-                break
-        
-        
+                
         leeruren = [False]*len(schema) #python array met booleans die false zijn
 
         for i in leermomenten: #maak booleans true op de indexen bepaald door de hoogste voorspellingen
@@ -141,6 +115,13 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
                 invoer = invoer.reshape(1,7)
                 situaties.append(invoer)
                 voorspelling = self.model.predict(invoer)[0]
+                
+                #kies willekeurig met kans epsilon
+                if(self.epsilon > random.random()):
+                    if random.random() > 0.5: #getallen maken niet uit, het gaat er om dat één van de twee hoger is.
+                        voorspelling = [0,1]
+                    else:
+                        voorspelling = [1,0]
                 
                 if self.prints > 1:
                     print(voorspelling,voorspelling[0] > voorspelling[1])
@@ -190,6 +171,11 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         
         if self.prints > 0:
             print('Epsilon : {0}, Cijfer: {1}'.format(round(self.epsilon,3),cijfer))
+            
+        
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_verval
+        
         return cijfer, leeruren, getID(leeruren)
 
 
@@ -220,7 +206,5 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         hist = History()
         self.model.fit(invoer,uitkomsten,epochs=1,verbose=0, callbacks=[hist])
 
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_verval
             
         return hist.history['loss'][0]
