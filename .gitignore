@@ -1,4 +1,7 @@
 test.py
 *.pyc
 *.jpg
+
+/YesNoPredictionOnly/log*/
+
 hist/

@@ -57,7 +57,6 @@ class Simulatie():
             hist.append(self.os)
         plt.plot(hist)
         plt.show()
-        print(penalty)
         return self.toets(0.1)
     
     

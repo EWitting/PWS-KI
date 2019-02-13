@@ -2,20 +2,24 @@ import time
 startt = time.time()
 
 import math
-import model
-import simulatie
 import random
 from statistics import mean
 from matplotlib import pyplot as plt
 
+#mijn andere scripts
 from visualisatie import visualiseer
+import model
+import simulatie
+
+#voor laad- en opsla
+from six.moves import cPickle
+import os
 
 
-
-testRange = 15000
-printOp = 150
+testRange = 25000
+printOp = 250
 max_uren = 5
-maxTime = 300 #in seconden
+maxTime = 60*10 #in seconden
 reached = 0
 
 #tussen bs_epochs_start en bs_epochs_max wordt de batch_size voor het trainen verhoogd.  https://arxiv.org/abs/1711.00489
@@ -45,6 +49,33 @@ schema =[False,False,False,False,False,False,False,False,False,True ,True ,True 
 hist = []
 diffs = []
 test = []
+
+#vind nummer voor nieuwe folder die nog niet is gebruikt
+logNum = 0    
+while(os.path.exists("./log"+str(logNum))):
+    logNum += 1
+dirName = './log' + str(logNum) +'/'
+os.makedirs(dirName + 'screenshots')
+
+#gebruikt als input namen en lists, slaat ze ge-pickled op als ruwe data, en als pyplot grafiek
+def saveStats(dictionary):     
+    for name, values in dictionary.items():
+        with open(dirName + name + '.pkl','wb') as f:
+            cPickle.dump(values,f)
+        plt.plot(values)
+        plt.savefig(dirName+name+'.png')
+        plt.clf()
+            
+def smooth(myList,N):
+    cumsum, moving_aves = [0], []
+
+    for i, x in enumerate(myList, 1):
+        cumsum.append(cumsum[i-1] + x)
+        if i>=N:
+            moving_ave = (cumsum[i] - cumsum[i-N])/N
+            moving_aves.append(moving_ave)            
+    return moving_aves
+
 
 def randomAgent(schema, factor, penalty):
     sim = simulatie.Simulatie(factor)
@@ -80,6 +111,7 @@ def eta(i):
     return round(min((testRange - i)/snelheid, maxTime - bezig))
 
 last_loss = []
+outputs = [] #houdt alle rijen aan test gegevens bij
 done = False
 for i in range(testRange):
     if not done:
@@ -89,7 +121,7 @@ for i in range(testRange):
         diff = resultaat - randomAgent(schema,factor, penalty)
         hist.append(resultaat)
         diffs.append(diff)
-        validation = (ai.voorspel(schema,0.8,False,0,0,0.1)[0])
+        validation = (ai.voorspel(schema,0.8,False,0,0,0.7)[0])
         test.append(validation)
         if i% math.floor(batch_size/4) == 0 and i > batch_size:
             
@@ -103,13 +135,17 @@ for i in range(testRange):
             last_loss.append(ai.train(batch_size))
             
         if i % round(printOp) == 0 and i is not 0:
-            string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Validation: {1}, Cijfer: {2}, Batch Size {3}, Epsilon: {4}, ID: {7}, penalty: {8}, loss: {9}'
-            print(string.format(i,validation ,resultaat ,batch_size ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID.replace('0',''),round(penalty,1),last_loss[len(last_loss)-1]))
-            visualiseer(schema,ai.voorspel(schema,0.75,False,0,0,0.7)[1],True)
+            string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Validation: {1}, Cijfer: {2}, Batch Size {3}, Epsilon: {4}, ID: {7}, penalty: {8}, loss: {9},aantal experiences: {10}'
+            output = string.format(i,validation ,resultaat ,batch_size ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID.replace('0',''),round(penalty,1),round(last_loss[len(last_loss)-1],1), len(ai.memory))
+            outputs.append(output)
+            print(output)
+            visualiseer(schema,ai.voorspel(schema,0.75,False,0,0,0.7)[1],True,dirName)
             if time.time() - t0 > maxTime:
                 done = True
                 if reached is 0:
                     reached = i
+
+
 
 if reached is 0:
     reached = testRange
@@ -119,69 +155,68 @@ print(round(time.time()-t0,1),'seconden')
 plt.plot(last_loss)
 plt.show()
 
+last_loss_smooth = smooth(last_loss,20)
+plt.plot(last_loss_smooth)
+plt.show()
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,1.5)
-visualiseer(schema,uren,True)
+visualiseer(schema,uren,True,dirName + '/penalty_test/')
 sim = simulatie.Simulatie(0.8)
-print('met penalty 0.7',sim.plot(uren, 1.5))
+print('met penalty 1.5',sim.plot(uren, 1.5))
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,1)
-visualiseer(schema,uren,True)
+visualiseer(schema,uren,True,dirName + '/penalty_test/')
 sim = simulatie.Simulatie(0.8)
-print('penalty 0.5',sim.plot(uren, 1))
+print('penalty 1',sim.plot(uren, 1))
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,0.5)
-visualiseer(schema,uren,True)
+visualiseer(schema,uren,True,dirName + '/penalty_test/')
 sim = simulatie.Simulatie(0.8)
-print('penalty 0.3',sim.plot(uren, 0.5))
+print('penalty 0.5',sim.plot(uren, 0.5))
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,0.1)
-visualiseer(schema,uren,True)
+visualiseer(schema,uren,True,dirName + '/penalty_test/')
 sim = simulatie.Simulatie(0.8)
 print('penalty 0.1',sim.plot(uren, 0.1))
 
 
 N = round(reached/20)
-cumsum, moving_aves = [0], []
 
-for i, x in enumerate(hist, 1):
-    cumsum.append(cumsum[i-1] + x)
-    if i>=N:
-        moving_ave = (cumsum[i] - cumsum[i-N])/N
-        moving_aves.append(moving_ave)
-
-plt.plot(moving_aves)
+smoothHist = smooth(hist,N)
+plt.plot(smoothHist)
 plt.show()
+print('Gemiddelde cijfer:',mean(hist[-1000:]))
 
-print('Gemiddelde cijfer:',mean(hist))
-
-
-cumsum, moving_aves = [0], []
-
-for i, x in enumerate(diffs, 1):
-    cumsum.append(cumsum[i-1] + x)
-    if i>=N:
-        moving_ave = (cumsum[i] - cumsum[i-N])/N
-        moving_aves.append(moving_ave)
-        
-
-plt.plot(moving_aves)
+diffsSmooth = smooth(diffs,N)
+plt.plot(diffsSmooth)
 plt.show()
+print('Gemiddeld verschil met willekeurig kiezen:',mean(diffs[-1000:]))
 
-
-print('Gemiddeld verschil met willekeurig kiezen:',mean(diffs))
-
-
-
-cumsum, moving_aves = [0], []
-
-for i, x in enumerate(test, 1):
-    cumsum.append(cumsum[i-1] + x)
-    if i>=N:
-        moving_ave = (cumsum[i] - cumsum[i-N])/N
-        moving_aves.append(moving_ave)
-
-plt.plot(moving_aves)
+testSmooth = smooth(test,N)
+plt.plot(testSmooth)
 plt.show()
+print('Controle met penalty = 0.7')
 
-print('Controle')
+
+#saving of everything
+saveStats({
+          'loss': last_loss,
+          'loss_smooth': last_loss_smooth,
+          
+          'cijfer' : hist,
+          'cijfer_smooth' : smoothHist,
+          
+          'verschil_met_random' : diffs,
+          'verschil_met_random_smooth': diffsSmooth,
+          
+          'validation' : test,
+          'validation_smooth':  testSmooth          
+          })
+    
+    
+with open(dirName + 'model_summary.txt', 'w') as f:
+    ai.model.summary(print_fn=lambda x: f.write(x + '\n'))
+    
+with open(dirName + 'output_log.txt', 'w') as f:
+    for line in outputs:
+        f.write("%s\n" % line)

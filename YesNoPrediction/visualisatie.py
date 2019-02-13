@@ -33,7 +33,7 @@ def preProcess(schema,leeruren):
             rooster.append(0)
     return rooster
             
-def visualiseer(schema,leeruren,screenshot):
+def visualiseer(schema,leeruren,screenshot,naam):
     planning = preProcess(schema,leeruren)
     pygame.init()
     pygame.display.set_caption('visualisatie van planning')
@@ -90,7 +90,7 @@ def visualiseer(schema,leeruren,screenshot):
             
             t = time.localtime()
             timestamp = time.strftime('%b-%d-%Y_%H%M', t)
-            pygame.image.save(screen,"Screenshots/" + timestamp + "_" + getID(leeruren).replace('0','') +".jpg")
+            pygame.image.save(screen,naam[2:] + "screenshots/" + timestamp + "_" + getID(leeruren).replace('0','') +".jpg")
             done = True
                 
         pygame.display.flip()
