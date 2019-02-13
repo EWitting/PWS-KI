@@ -16,7 +16,7 @@ from six.moves import cPickle
 import os
 
 
-testRange = 25000
+testRange = 50000
 printOp = 250
 max_uren = 5
 maxTime = 60*10 #in seconden
@@ -135,8 +135,8 @@ for i in range(testRange):
             last_loss.append(ai.train(batch_size))
             
         if i % round(printOp) == 0 and i is not 0:
-            string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Validation: {1}, Cijfer: {2}, Batch Size {3}, Epsilon: {4}, ID: {7}, penalty: {8}, loss: {9},aantal experiences: {10}'
-            output = string.format(i,validation ,resultaat ,batch_size ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID.replace('0',''),round(penalty,1),round(last_loss[len(last_loss)-1],1), len(ai.memory))
+            string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Validation: {1}, Cijfer: {2}, Batch Size {3}, Epsilon: {4}, ID: {7}, penalty: {8}, loss: {9}, aantal experiences: {10}'
+            output = string.format(i,validation ,resultaat ,batch_size ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID.replace('0',''),round(penalty,1),round(last_loss[len(last_loss)-1],2), len(ai.memory))
             outputs.append(output)
             print(output)
             visualiseer(schema,ai.voorspel(schema,0.75,False,0,0,0.7)[1],True,dirName)
@@ -159,23 +159,25 @@ last_loss_smooth = smooth(last_loss,20)
 plt.plot(last_loss_smooth)
 plt.show()
 
+os.makedirs(dirName+'penalty_test/screenshots')
+
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,1.5)
-visualiseer(schema,uren,True,dirName + '/penalty_test/')
+visualiseer(schema,uren,True,dirName + 'penalty_test/')
 sim = simulatie.Simulatie(0.8)
 print('met penalty 1.5',sim.plot(uren, 1.5))
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,1)
-visualiseer(schema,uren,True,dirName + '/penalty_test/')
+visualiseer(schema,uren,True,dirName + 'penalty_test/')
 sim = simulatie.Simulatie(0.8)
 print('penalty 1',sim.plot(uren, 1))
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,0.5)
-visualiseer(schema,uren,True,dirName + '/penalty_test/')
+visualiseer(schema,uren,True,dirName + 'penalty_test/')
 sim = simulatie.Simulatie(0.8)
 print('penalty 0.5',sim.plot(uren, 0.5))
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,0.1)
-visualiseer(schema,uren,True,dirName + '/penalty_test/')
+visualiseer(schema,uren,True,dirName + 'penalty_test/')
 sim = simulatie.Simulatie(0.8)
 print('penalty 0.1',sim.plot(uren, 0.1))
 
