@@ -19,7 +19,7 @@ class Simulatie():
         self.max_ls = 0.75 #max leersnelheid
         self.ls = self.max_ls # leersnelheid
         self.ls_verval = 0.5 #hoe snel je effectiviteit verlaagt als je te vaak achter elkaar leert
-        self.vv = 0.5 # verval van verval(voor het effect van herhaald leren)
+        self.vv = 0.75 # verval van verval(voor het effect van herhaald leren)
         self.index = 0 # geeft aan welk uur in de simulatie het is
         self.straf = 0
         

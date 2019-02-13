@@ -36,11 +36,12 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
     def __init__(self, max_uren,prints):
         self.prints = prints
         self.model = self.createModel() #start functie om model te maken en bewaar het in self.model
-        self.memory = deque(maxlen=50000) #verzameling van experiences, wordt automatisch op maximum lengte gehouden om te voorkomen dat te oude experiences worden gebruikt
+        self.memory_len = 100000
+        self.memory = deque(maxlen=self.memory_len) #verzameling van experiences, wordt automatisch op maximum lengte gehouden om te voorkomen dat te oude experiences worden gebruikt
 
         self.epsilon = 1  #bepaalt kans om een willekeurige actie te nemen, zo kan de AI beginnen met uitproberen en daarna steeds meer gericht "keuzes maken"
         self.epsilon_min = 0.01 #minimum waarde van epsilon
-        self.epsilon_verval = 0.9998 #hoe snel epsilon kleiner wordt
+        self.epsilon_verval = 0.99985 #hoe snel epsilon kleiner wordt
 
         self.max_uren = max_uren #bepaald aantal uren dat mag worden uitgekozen om op te leren
 
