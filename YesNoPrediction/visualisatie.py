@@ -90,7 +90,7 @@ def visualiseer(schema,leeruren,screenshot,naam):
             
             t = time.localtime()
             timestamp = time.strftime('%b-%d-%Y_%H%M', t)
-            pygame.image.save(screen,naam[2:] + "screenshots/" + timestamp + "_" + getID(leeruren).replace('0','') +".jpg")
+            pygame.image.save(screen,naam+".jpg")
             done = True
                 
         pygame.display.flip()
