@@ -40,7 +40,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
 
         self.epsilon = 1  #bepaalt kans om een willekeurige actie te nemen, zo kan de AI beginnen met uitproberen en daarna steeds meer gericht "keuzes maken"
         self.epsilon_min = 0.01 #minimum waarde van epsilon
-        self.epsilon_verval = 0.99975 #hoe snel epsilon kleiner wordt
+        self.epsilon_verval = 0.9998 #hoe snel epsilon kleiner wordt
 
         self.max_uren = max_uren #bepaald aantal uren dat mag worden uitgekozen om op te leren
 
@@ -173,7 +173,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
             print('Epsilon : {0}, Cijfer: {1}'.format(round(self.epsilon,3),cijfer))
             
         
-        if self.epsilon > self.epsilon_min:
+        if self.epsilon > self.epsilon_min and onthoud:
             self.epsilon *= self.epsilon_verval
         
         return cijfer, leeruren, getID(leeruren)
@@ -184,8 +184,6 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         if len(self.memory) < groepsgrootte: #check om errors te voorkomen
             print('Niet genoeg experiences in geheugen! het zijn er maar:',len(self.memory))
             return
-
-        
 
         groep = random.sample(self.memory, groepsgrootte)
 
