@@ -2,6 +2,6 @@ test.py
 *.pyc
 *.jpg
 
-YesNoPredictionOnly/log*/
+YesNoPrediction/log*/
 
 hist/
