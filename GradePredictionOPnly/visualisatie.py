@@ -1,7 +1,5 @@
 import pygame
 import math
-from model import getID
-import time
 
 x_dim = 100
 y_dim = 30
@@ -33,7 +31,7 @@ def preProcess(schema,leeruren):
             rooster.append(0)
     return rooster
             
-def visualiseer(schema,leeruren,screenshot):
+def visualiseer(schema,leeruren,screenshot,naam):
     planning = preProcess(schema,leeruren)
     pygame.init()
     pygame.display.set_caption('visualisatie van planning')
@@ -88,9 +86,7 @@ def visualiseer(schema,leeruren,screenshot):
                 
         if screenshot:
             
-            t = time.localtime()
-            timestamp = time.strftime('%b-%d-%Y_%H%M', t)
-            pygame.image.save(screen,"Screenshots/" + timestamp + "_" + getID(leeruren) +".jpg")
+            pygame.image.save(screen,naam+".jpg")
             done = True
                 
         pygame.display.flip()
@@ -98,7 +94,6 @@ def visualiseer(schema,leeruren,screenshot):
 
         if done:
             pygame.quit()
-
 
 
 def drawBlock(screen, index,x,y,isLast):
@@ -113,22 +108,4 @@ def drawBlock(screen, index,x,y,isLast):
     rect = pygame.Rect(x,y,x_dim,y_dim)
     pygame.draw.rect(screen, col, rect)
     pygame.draw.rect(screen, (0,0,0), rect,1)
-    
-    
-if __name__ == '__main__':
-        #zondag
-    schema =[False,False,False,False,False,False,False,False,False,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,False,False,False,False,
-        #maadag
-        False,False,False,False,False,False,False ,False,False,False,False,False,False,False,False,True,True ,False ,False ,False,False,False,False,False,
-        #dinsdag
-        False,False,False,False,False,False,False ,False,False,False,False,False,False,False,True,True,True ,True ,False ,False,False,False,False,False,
-        #woensdag
-        False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,True,True,True,True,False,False,False,False,
-        #donderdag
-        False,False,False,False,False,False,False ,False,False,False,False,False,False,False,False,True,True ,False ,False ,False,False,False,False,False,
-        #vrijdag
-        False,False,False,False,False,False,False,False,False,False,False,False,False]
-    leeruren = '0x0'
-    
-    visualiseer(schema,metHex(schema,leeruren),False)
     

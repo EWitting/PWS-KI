@@ -3,5 +3,5 @@ test.py
 *.jpg
 
 YesNoPrediction/log*/
-
+GradePredictionOPnly/log*/
 hist/

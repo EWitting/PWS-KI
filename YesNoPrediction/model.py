@@ -27,12 +27,8 @@ def getID(binary): #maakt  van een lijst van true en false één getal om beter 
         #'1011' ===> 11 ===> 0xB
         return hex(int(tmp, 2))
     
-class agent: #agent is een ander woord voor "een AI" in machine learning
-    
-    
-        
-        
-    
+class agent: #de agent is het machine learning gedeelte dat cijfers voorspelt
+           
     def __init__(self, max_uren,prints):
         self.prints = prints
         self.model = self.createModel() #start functie om model te maken en bewaar het in self.model
@@ -46,6 +42,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         self.max_uren = max_uren #bepaald aantal uren dat mag worden uitgekozen om op te leren
 
         self.input_size = 7
+        
     def createModel(self):
         if self.prints > 1: 
             print('Model initiatie...')
@@ -57,7 +54,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
         #input dim: bepaalt het aantal factoren dat als invoer wordt gebruikt
         #activation: de functie die aan elk neuron wordt toegevoegd, sigmoid is om elk getal tussen 0 en 1 te "proppen".
         #Dit voorkomt dat factoren met gemiddeld grote getallen meer invloed hebben op de uitkomst
-        network.add(Dense(16,input_dim = 7,activation='sigmoid'))
+        network.add(Dense(16,input_dim = self.input_size,activation='sigmoid'))
 
         #linear betekent dat geen speciale functie wordt gebruikt
         network.add(Dense(32,activation = 'linear'))
@@ -103,7 +100,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
             print('Simulatie geladen, beginnen met voorspellen...')
         
         tsm = 0 #Tijd Linds Leren. uren sinds vorige keer geleerd
-        kg = 0 #Keer Geleerd in totaal
+        kg = 0 #Keer Geleerd afgelopen week
         kg_d = 0 #Keer Geleerd deze Dag
         voorspellingen = []
         situaties = []
@@ -113,7 +110,7 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
                 tijdTotToets = len(schema) - uur #aantal uren tot de toets is
                 #========================================================================
                 invoer = np.array([tijd,tijdTotToets,moeilijkheidsgraad,penalty,tsm,kg,kg_d]) #zet invoer om in numpy array, een formaat dat door keras wordt gebruikt
-                invoer = invoer.reshape(1,7)
+                invoer = invoer.reshape(1,self.input_size)
                 situaties.append(invoer)
                 voorspelling = self.model.predict(invoer)[0]
                 
@@ -188,13 +185,13 @@ class agent: #agent is een ander woord voor "een AI" in machine learning
 
         groep = random.sample(self.memory, groepsgrootte)
 
-        invoer = np.empty((groepsgrootte,7))
+        invoer = np.empty((groepsgrootte,self.input_size))
         uitkomsten = np.empty((groepsgrootte,2))
 
         for i in range(len(groep)):
             invoer[i] = groep[i][0]
             tmp = np.array([groep[i][0]])
-            tmp = tmp.reshape(1,7)
+            tmp = tmp.reshape(1,self.input_size)
             if groep[i][2]: #wel geleerd bij die experience               
                 uitkomsten[i][0] = groep[i][1] #maak yes output echte uitkomst
                 uitkomsten[i][1] = self.model.predict(tmp)[0][1] #gebruik voorspelling als invoer, model hoeft dus niet te veranderen

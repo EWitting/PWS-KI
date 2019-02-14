@@ -57,22 +57,4 @@ class Simulatie():
             hist.append(self.os)
         plt.plot(hist)
         plt.show()
-        return self.toets(0.1)
-    
-    
-if __name__ == "__main__":
-    
-    plt.plot(vmf)
-    plt.show()
-    
-    sim = Simulatie(0.8)
-    print('twee achter weg        ',sim.simuleer([False,True,True,False,False,False,False,False],0.0))
-    sim = Simulatie(0.8)
-    print('twee met één pauze     ',sim.simuleer([False,True,False,True,False,False,False,False],0.0))
-    sim = Simulatie(0.8)
-    print('drie dichtbij          ',sim.simuleer([False,True,True,True,False,False,False,False],0.0))
-    sim = Simulatie(0.8)
-    print('twee met pauze van twee',sim.plot([True,False,False,True,False,False,False,False],0.0))
-    sim = Simulatie(0.8)
-    print('plot',sim.plot([True,False,False,True,False,False,False,False,False,False,True,False,False,False,False,True,False,True,False,False,True,False,False,False,False],0.0))
-    
+        return self.toets(0.1)  

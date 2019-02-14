@@ -16,11 +16,12 @@ from six.moves import cPickle
 import os
 
 
-testRange = 50%000
+testRange = 50000
 printOp = 250
 max_uren = 5
 maxTime = 60*10 #in seconden
 reached = 0
+vast_uren = 5 #ter vergelijking met 
 
 #tussen bs_epochs_start en bs_epochs_max wordt de batch_size voor het trainen verhoogd.  https://arxiv.org/abs/1711.00489
 batch_size_start = 32
@@ -28,7 +29,7 @@ batch_size_max = 256
 bs_epochs_start = 500
 bs_epochs_max = 4000
 batch_size = batch_size_start
-
+bs = 64
 
 ai = model.agent(max_uren,0)
 
@@ -49,6 +50,7 @@ schema =[False,False,False,False,False,False,False,False,False,True ,True ,True 
 hist = []
 diffs = []
 test = []
+compare = []
 
 #vind nummer voor nieuwe folder die nog niet is gebruikt
 logNum = 0    
@@ -57,15 +59,42 @@ while(os.path.exists("./log"+str(logNum))):
 dirName = './log' + str(logNum) +'/'
 os.makedirs(dirName + 'screenshots')
 
+# %% ALLE FUNCTIES
 #gebruikt als input namen en lists, slaat ze ge-pickled op als ruwe data, en als pyplot grafiek
 def saveStats(dictionary):     
     for name, values in dictionary.items():
         with open(dirName + name + '.pkl','wb') as f:
             cPickle.dump(values,f)
         plt.plot(values)
+        #sla grafiek als simpele .png op, maar ook als .svg met oneindige resolutie
+        plt.savefig(dirName+name+'.svg')
         plt.savefig(dirName+name+'.png')
         plt.clf()
-    ai.model.save(dirName[2:] + '/model.h5')
+        
+    #sla model op
+    ai.model.save(dirName[2:] + '/model.h5') 
+    
+    with open(dirName + 'model_summary.txt', 'w') as f:
+        ai.model.summary(print_fn=lambda x: f.write(x + '\n'))    
+        
+    with open(dirName + 'output_log.txt', 'w') as f:
+        for line in outputs:
+            f.write("%s\n" % line)
+    
+    #sla parameters op
+    config_dict = { 
+            'epsilon verval' : ai.epsilon_verval,
+            'geheugen grootte' :ai.memory_len,
+            'batch size' :bs,
+            'max. epochs': testRange,
+            'max. seconden': maxTime,
+            'werkelijk aantal epochs' : reached,
+            'werkelijk aantal seconden':round(time.time() - t0,1),
+            'print/screenshot interval' : printOp            
+            }        
+    with open(dirName + 'cfg.txt', 'w') as f:
+        for name,value in config_dict.items():
+            f.write("%s: %s\n" %(name,value))
             
 def smooth(myList,N):
     cumsum, moving_aves = [0], []
@@ -103,7 +132,6 @@ def randomUren(schema):
         leeruren[i] = True
     return leeruren
 
-
 t0 = time.time()
 print('train loop begint nu, op:',round(time.time()-startt,2),'seconden')
 def eta(i):
@@ -111,19 +139,35 @@ def eta(i):
     snelheid = i / bezig
     return round(min((testRange - i)/snelheid, maxTime - bezig))
 
+# %% TRAINING LOOP
 last_loss = []
 outputs = [] #houdt alle rijen aan test gegevens bij
+epshist = [] #ter vergelijking om naast de andere resultaten te houden
+echt = []
+aantal = []
+
 done = False
 for i in range(testRange):
     if not done:
         factor = random.uniform(0.5,0.9)
         penalty = random.uniform(0.1,1.5)
         resultaat, leeruren, ID = ai.voorspel(schema,factor,True,0,0.1,penalty)
+        
+        #statistieken
         diff = resultaat - randomAgent(schema,factor, penalty)
         hist.append(resultaat)
         diffs.append(diff)
         validation = (ai.voorspel(schema,0.8,False,0,0,0.7)[0])
         test.append(validation)
+        epshist.append(ai.epsilon)
+        echt_cijfer = resultaat + sum(leeruren)*penalty
+        echt.append(echt)
+        aantal.append(sum(leeruren))
+        
+        if sum(leeruren) == vast_uren:
+            compare.append(echt)
+        
+        
         if i% math.floor(batch_size/4) == 0 and i > batch_size:
             
             if i < bs_epochs_start:
@@ -132,7 +176,7 @@ for i in range(testRange):
                 batch_size = math.floor(batch_size_start + (i - bs_epochs_start) / (bs_epochs_max - bs_epochs_start) * (batch_size_max - batch_size_start))
             else:
                 batch_size = batch_size_max
-            batch_size = 64
+            batch_size = bs
             last_loss.append(ai.train(batch_size))
             
         if i % round(printOp) == 0 and i is not 0:
@@ -140,13 +184,13 @@ for i in range(testRange):
             output = string.format(i,validation ,resultaat ,batch_size ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID.replace('0',''),round(penalty,1),round(last_loss[len(last_loss)-1],2), len(ai.memory))
             outputs.append(output)
             print(output)
-            visualiseer(schema,ai.voorspel(schema,0.75,False,0,0,0.7)[1],True,dirName[2:]+'screenshots/'+i)
+            visualiseer(schema,ai.voorspel(schema,0.75,False,0,0,0.7)[1],True,dirName[2:]+'screenshots/'+str(i))
             if time.time() - t0 > maxTime:
                 done = True
                 if reached is 0:
                     reached = i
 
-
+#%% STATISTIEKEN
 
 if reached is 0:
     reached = testRange
@@ -201,7 +245,7 @@ plt.show()
 print('Controle met penalty = 0.7')
 
 
-#saving of everything
+#alles opslaan
 saveStats({
           'loss': last_loss,
           'loss_smooth': last_loss_smooth,
@@ -213,13 +257,9 @@ saveStats({
           'verschil_met_random_smooth': diffsSmooth,
           
           'validation' : test,
-          'validation_smooth':  testSmooth          
+          'validation_smooth':  testSmooth,    
+          
+          'epsilon' : epshist
           })
     
     
-with open(dirName + 'model_summary.txt', 'w') as f:
-    ai.model.summary(print_fn=lambda x: f.write(x + '\n'))
-    
-with open(dirName + 'output_log.txt', 'w') as f:
-    for line in outputs:
-        f.write("%s\n" % line)
