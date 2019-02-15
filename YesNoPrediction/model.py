@@ -30,6 +30,8 @@ def getID(binary): #maakt  van een lijst van true en false één getal om beter 
 class agent: #de agent is het machine learning gedeelte dat cijfers voorspelt
            
     def __init__(self, max_uren,prints):
+        self.input_size = 7
+        
         self.prints = prints
         self.model = self.createModel() #start functie om model te maken en bewaar het in self.model
         self.memory_len = 100000
@@ -39,9 +41,7 @@ class agent: #de agent is het machine learning gedeelte dat cijfers voorspelt
         self.epsilon_min = 0.01 #minimum waarde van epsilon
         self.epsilon_verval = 0.99985 #hoe snel epsilon kleiner wordt
 
-        self.max_uren = max_uren #bepaald aantal uren dat mag worden uitgekozen om op te leren
-
-        self.input_size = 7
+        self.max_uren = max_uren #bepaald aantal uren dat mag worden uitgekozen om op te leren       
         
     def createModel(self):
         if self.prints > 1: 

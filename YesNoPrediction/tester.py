@@ -17,11 +17,12 @@ import os
 
 
 testRange = 50000
-printOp = 250
+printerval = 250
 max_uren = 5
-maxTime = 60*10 #in seconden
+maxTime = 60*2 #in seconden
 reached = 0
-vast_uren = 5 #ter vergelijking met 
+vast_uren = 5 #ter vergelijking met grade prediction only
+validation_penalty = 0.7 #penalty die wordt gebruikt om de voortgang te testen
 
 #tussen bs_epochs_start en bs_epochs_max wordt de batch_size voor het trainen verhoogd.  https://arxiv.org/abs/1711.00489
 batch_size_start = 32
@@ -47,11 +48,6 @@ schema =[False,False,False,False,False,False,False,False,False,True ,True ,True 
         False,False,False,False,False,False,False,False,False,False,False,False,False]
 
 
-hist = []
-diffs = []
-test = []
-compare = []
-
 #vind nummer voor nieuwe folder die nog niet is gebruikt
 logNum = 0    
 while(os.path.exists("./log"+str(logNum))):
@@ -61,15 +57,21 @@ os.makedirs(dirName + 'screenshots')
 
 # %% ALLE FUNCTIES
 #gebruikt als input namen en lists, slaat ze ge-pickled op als ruwe data, en als pyplot grafiek
-def saveStats(dictionary):     
+def saveStats(dictionary, plotten):
+    os.makedirs(dirName+'vector')
+    os.makedirs(dirName+'picture')
     for name, values in dictionary.items():
         with open(dirName + name + '.pkl','wb') as f:
             cPickle.dump(values,f)
         plt.plot(values)
         #sla grafiek als simpele .png op, maar ook als .svg met oneindige resolutie
-        plt.savefig(dirName+name+'.svg')
-        plt.savefig(dirName+name+'.png')
-        plt.clf()
+        plt.savefig(dirName+'vector/'+name+'.svg')
+        plt.savefig(dirName+'picture/'+name+'.png')
+        if plotten:
+            plt.show()
+            print(name)
+        else:
+            plt.clf()
         
     #sla model op
     ai.model.save(dirName[2:] + '/model.h5') 
@@ -90,7 +92,8 @@ def saveStats(dictionary):
             'max. seconden': maxTime,
             'werkelijk aantal epochs' : reached,
             'werkelijk aantal seconden':round(time.time() - t0,1),
-            'print/screenshot interval' : printOp            
+            'print/screenshot interval' : printerval,
+            'penalty voor validation' : validation_penalty
             }        
     with open(dirName + 'cfg.txt', 'w') as f:
         for name,value in config_dict.items():
@@ -140,32 +143,48 @@ def eta(i):
     return round(min((testRange - i)/snelheid, maxTime - bezig))
 
 # %% TRAINING LOOP
-last_loss = []
-outputs = [] #houdt alle rijen aan test gegevens bij
-epshist = [] #ter vergelijking om naast de andere resultaten te houden
-echt = []
-aantal = []
+
+'''
+beloning = cijfer - (aantal keer geleerd )*penalty
+'''
+
+outputs = [] #slaat alle geprintte gegevens op
+
+#alle gemeten statistieken worden in deze lists opgeslagen
+loss_hist = [] #loss per keer getraind
+epsilon_hist = [] #ter vergelijking om naast de andere resultaten te houden
+beloning_hist = [] #slaat beloning op
+diff_hist = [] #verschil tussen behaalde beloning en beloning van een 100% willekeurige agent
+val_hist = [] #beloningen met steeds dezelfde penalty(0.7) die een simulatie zonder random factor gebruikt ter vergelijking
+cijfer_hist = [] #cijfer zonder penalty aftrek
+fixed_hist = [] #de cijfers geïsoleerd uit cijfer_hist, waar een specifiek aantal uren is geleerd, ter vergelijking met de 'grade predict only' aanpak 
+frequentie_hist = [] #houdt bij hoe vaak wordt geleerd
 
 done = False
 for i in range(testRange):
     if not done:
         factor = random.uniform(0.5,0.9)
         penalty = random.uniform(0.1,1.5)
-        resultaat, leeruren, ID = ai.voorspel(schema,factor,True,0,0.1,penalty)
+        beloning, leeruren, ID = ai.voorspel(schema,factor,True,0,0.1,penalty)
         
         #statistieken
-        diff = resultaat - randomAgent(schema,factor, penalty)
-        hist.append(resultaat)
-        diffs.append(diff)
+        diff = beloning - randomAgent(schema,factor, penalty)
+        beloning_hist.append(beloning)
+        diff_hist.append(diff)
         validation = (ai.voorspel(schema,0.8,False,0,0,0.7)[0])
-        test.append(validation)
-        epshist.append(ai.epsilon)
-        echt_cijfer = resultaat + sum(leeruren)*penalty
-        echt.append(echt)
-        aantal.append(sum(leeruren))
+        val_hist.append(validation)
+        
+        epsilon_hist.append(ai.epsilon)
+        
+        frequentie = sum(leeruren)        
+        frequentie_hist.append(frequentie)
+        
+        cijfer = beloning + frequentie*penalty
+        cijfer_hist.append(cijfer)
+        
         
         if sum(leeruren) == vast_uren:
-            compare.append(echt)
+            fixed_hist.append(cijfer)
         
         
         if i% math.floor(batch_size/4) == 0 and i > batch_size:
@@ -177,33 +196,24 @@ for i in range(testRange):
             else:
                 batch_size = batch_size_max
             batch_size = bs
-            last_loss.append(ai.train(batch_size))
+            loss_hist.append(ai.train(batch_size))
             
-        if i % round(printOp) == 0 and i is not 0:
+        if i % round(printerval) == 0 and i is not 0:
             string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Validation: {1}, Cijfer: {2}, Batch Size {3}, Epsilon: {4}, ID: {7}, penalty: {8}, loss: {9}, aantal experiences: {10}'
-            output = string.format(i,validation ,resultaat ,batch_size ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID.replace('0',''),round(penalty,1),round(last_loss[len(last_loss)-1],2), len(ai.memory))
+            output = string.format(i,validation ,beloning ,batch_size ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID.replace('0',''),round(penalty,1),round(loss_hist[len(loss_hist)-1],2), len(ai.memory))
             outputs.append(output)
             print(output)
-            visualiseer(schema,ai.voorspel(schema,0.75,False,0,0,0.7)[1],True,dirName[2:]+'screenshots/'+str(i))
+            visualiseer(schema,ai.voorspel(schema,0.75,False,0,0,validation_penalty)[1],True,dirName[2:]+'screenshots/'+str(i))
             if time.time() - t0 > maxTime:
                 done = True
                 if reached is 0:
                     reached = i
 
 #%% STATISTIEKEN
-
 if reached is 0:
     reached = testRange
 
 print(round(time.time()-t0,1),'seconden')
-
-plt.plot(last_loss)
-plt.show()
-
-last_loss_smooth = smooth(last_loss,20)
-plt.plot(last_loss_smooth)
-plt.show()
-
 os.makedirs(dirName+'penalty_test')
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,1.5)
@@ -227,39 +237,34 @@ sim = simulatie.Simulatie(0.8)
 print('penalty 0.1',sim.plot(uren, 0.1))
 
 
-N = round(reached/20)
+print('Gemiddelde beloning laatste duizend:',mean(beloning_hist[-1000:]))
+print('Gemiddeld verschil met willekeurig kiezen laatste duizen:',mean(diff_hist[-1000:]))
 
-smoothHist = smooth(hist,N)
-plt.plot(smoothHist)
-plt.show()
-print('Gemiddelde cijfer:',mean(hist[-1000:]))
 
-diffsSmooth = smooth(diffs,N)
-plt.plot(diffsSmooth)
-plt.show()
-print('Gemiddeld verschil met willekeurig kiezen:',mean(diffs[-1000:]))
-
-testSmooth = smooth(test,N)
-plt.plot(testSmooth)
-plt.show()
-print('Controle met penalty = 0.7')
-
+N = round(reached/30)
 
 #alles opslaan
 saveStats({
-          'loss': last_loss,
-          'loss_smooth': last_loss_smooth,
+          'loss': loss_hist,
+          'loss_smooth': smooth(loss_hist,20),
           
-          'cijfer' : hist,
-          'cijfer_smooth' : smoothHist,
+          'beloning' : beloning_hist,
+          'beloning_smooth' : smooth(beloning_hist,N),
           
-          'verschil_met_random' : diffs,
-          'verschil_met_random_smooth': diffsSmooth,
+          'verschil_met_random' : diff_hist,
+          'verschil_met_random_smooth': smooth(diff_hist,N),
           
-          'validation' : test,
-          'validation_smooth':  testSmooth,    
+          'validation' : val_hist,
+          'validation_smooth':  smooth(val_hist,N),    
           
-          'epsilon' : epshist
-          })
-    
-    
+          'epsilon' : epsilon_hist,
+          
+          'cijfer' : cijfer_hist,
+          'cijfer_smooth' : smooth(cijfer_hist,N),
+          
+          'alleen_'+str(vast_uren)+'_uren' : fixed_hist,
+          'alleen_'+str(vast_uren)+'_uren_smooth' : smooth(fixed_hist,round(N/4)),
+          
+          'aantal_uren_per_week' : frequentie_hist,
+          'aantal_uren_per_week_smooth' : smooth(frequentie_hist,N)
+          }, True)
