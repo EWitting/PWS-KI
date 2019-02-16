@@ -28,9 +28,6 @@ def refresh():
     beloning, leeruren, ID = ai.voorspel(schema,moeilijkheidsfactor,False,0,0.1,penalty)
     planning = preProcess(schema,leeruren)
     
-
- 
-
 planning = preProcess(schema,leeruren)
 dagen = math.ceil(len(planning)/24)    
 

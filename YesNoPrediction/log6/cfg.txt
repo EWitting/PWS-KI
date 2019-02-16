@@ -1,0 +1,9 @@
+epsilon verval: 0.99985
+geheugen grootte: 100000
+batch size: 64
+max. epochs: 75000
+max. seconden: 900
+werkelijk aantal epochs: 49500
+werkelijk aantal seconden: 908.0
+print/screenshot interval: 250
+penalty voor validation: 0.7
