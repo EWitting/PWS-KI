@@ -1,4 +1,4 @@
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout
 from keras.optimizers import Adam
 from keras.callbacks import History 
@@ -29,19 +29,27 @@ def getID(binary): #maakt  van een lijst van true en false één getal om beter 
     
 class agent: #de agent is het machine learning gedeelte dat cijfers voorspelt
            
-    def __init__(self, max_uren,prints):
+    def __init__(self,prints=0,**kwargs):
         self.input_size = 7
         
-        self.prints = prints
-        self.model = self.createModel() #start functie om model te maken en bewaar het in self.model
+            
         self.memory_len = 100000
         self.memory = deque(maxlen=self.memory_len) #verzameling van experiences, wordt automatisch op maximum lengte gehouden om te voorkomen dat te oude experiences worden gebruikt
 
         self.epsilon = 1  #bepaalt kans om een willekeurige actie te nemen, zo kan de AI beginnen met uitproberen en daarna steeds meer gericht "keuzes maken"
         self.epsilon_min = 0.01 #minimum waarde van epsilon
         self.epsilon_verval = 0.99985 #hoe snel epsilon kleiner wordt
-
-        self.max_uren = max_uren #bepaald aantal uren dat mag worden uitgekozen om op te leren       
+        
+        self.prints = prints
+        
+        #optionele laden van een model ipv maken        
+        if'load' in kwargs:
+            self.model = load_model(kwargs['load'])
+        else:
+            self.model = self.createModel() #start functie om model te maken en bewaar het in self.model
+        
+        
+        
         
     def createModel(self):
         if self.prints > 1: 

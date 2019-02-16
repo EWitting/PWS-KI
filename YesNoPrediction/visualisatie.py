@@ -8,18 +8,6 @@ top = 30
 
 background_colour = (50,50,50)
 
-def metHex(schema,hexData):
-    tmp = bin(int(hexData, 16))[2:].zfill(len(schema))
-    leeruren = []
-    
-    for i in tmp:
-        if i == '1':
-            leeruren.append(True)
-        else:
-            leeruren.append(False)
-    return leeruren
-    
-
 def preProcess(schema,leeruren):
     rooster = []
     for i in range(len(schema)):
@@ -39,13 +27,9 @@ def visualiseer(schema,leeruren,screenshot,naam):
     dagen = math.ceil(len(planning)/24)
     
     screen = pygame.display.set_mode((x_dim*dagen+left,y_dim*24+top))
-    screen.fill(background_colour)
-    #pygame.display.iconify()
-    
+    screen.fill(background_colour)    
     clock = pygame.time.Clock()
-    
-    done = False
-    
+       
     pygame.font.init() 
     lefts = []
     tops = []
@@ -58,7 +42,7 @@ def visualiseer(schema,leeruren,screenshot,naam):
     for i in range(dagen):
         tops.append(myFont.render(dagTeksten[i], False, (255, 255, 255)))
     
-    
+    done = False
     while not done:
         for event in pygame.event.get():
                 if event.type == pygame.QUIT:

@@ -16,10 +16,10 @@ from six.moves import cPickle
 import os
 
 
-testRange = 50000
+testRange = 75000
 printerval = 250
 max_uren = 5
-maxTime = 60*2 #in seconden
+maxTime = 60*0.1 #in seconden
 reached = 0
 vast_uren = 5 #ter vergelijking met grade prediction only
 validation_penalty = 0.7 #penalty die wordt gebruikt om de voortgang te testen
@@ -32,7 +32,7 @@ bs_epochs_max = 4000
 batch_size = batch_size_start
 bs = 64
 
-ai = model.agent(max_uren,0)
+ai = model.agent(0)
 
         #zondag
 schema =[False,False,False,False,False,False,False,False,False,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,False,False,False,False,
@@ -54,6 +54,7 @@ while(os.path.exists("./log"+str(logNum))):
     logNum += 1
 dirName = './log' + str(logNum) +'/'
 os.makedirs(dirName + 'screenshots')
+print('outputting to',dirName)
 
 # %% ALLE FUNCTIES
 #gebruikt als input namen en lists, slaat ze ge-pickled op als ruwe data, en als pyplot grafiek
@@ -241,7 +242,7 @@ print('Gemiddelde beloning laatste duizend:',mean(beloning_hist[-1000:]))
 print('Gemiddeld verschil met willekeurig kiezen laatste duizen:',mean(diff_hist[-1000:]))
 
 
-N = round(reached/30)
+N = min(round(reached/1000),1)
 
 #alles opslaan
 saveStats({

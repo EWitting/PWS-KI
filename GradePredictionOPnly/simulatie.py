@@ -16,19 +16,20 @@ class Simulatie():
         self.mg = moeilijkheidsgraad #moeilijkheidsgraad van toets tussen 0 en 1, 0 is onmogelijk en 1 is heel makkelijk
         self.os = 0 # onthouden leerstof tussen 0 en 1
         self.v = 0.975 # verval
-        self.ls = 0.8 # leersnelheid
-        self.max_ls = 0.9 #max leersnelheid
+        self.max_ls = 0.75 #max leersnelheid
+        self.ls = self.max_ls # leersnelheid
         self.ls_verval = 0.5 #hoe snel je effectiviteit verlaagt als je te vaak achter elkaar leert
-        self.vv = 0.5 # verval van verval(voor het effect van herhaald leren)
+        self.vv = 0.75 # verval van verval(voor het effect van herhaald leren)
         self.index = 0 # geeft aan welk uur in de simulatie het is
-        
+        self.straf = 0
+      
     #stapt 1 uur vooruit in de tijd, waarbij wel of niet geleerd wordt
     def stap(self, geleerd): 
         tijd = self.index % 24 #vindt het uur van de dag voor gebruik door vermoeidheidsfactor 
         if geleerd:
             self.os += self.ls*(1-vmf[tijd])*(1-self.os)
             self.ls *= self.ls_verval
-            self.v += self.vv*(1 - self.v)*(0.5 + 0.5*self.ls)
+            self.v += self.vv*(1 - self.v)*self.ls
             
         else:
             self.os *= self.v
