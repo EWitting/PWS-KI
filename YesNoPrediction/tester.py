@@ -87,18 +87,24 @@ def saveStats(dictionary, plotten):
     #sla parameters op
     config_dict = { 
             'epsilon verval' : ai.epsilon_verval,
+            'epsilon minimum': ai.epsilon_min,
             'geheugen grootte' :ai.memory_len,
             'batch size' :bs,
             'max. epochs': testRange,
             'max. seconden': maxTime,
             'werkelijk aantal epochs' : reached,
             'werkelijk aantal seconden':round(time.time() - t0,1),
+            'epochs per seconde:' : round(reached/(time.time() - t0),2),
+            'gemiddelde van laatste procent loss' : round(mean(loss_hist[-round(len(loss_hist/100)):]),3),
+            'gemiddelde van laatste procent beloning' : round(mean(beloning_hist[-round(len(beloning_hist/100)):]),3),
+            'gemiddelde van laatste procent controle' : round(mean(val_hist[-round(len(val_hist/100)):]),3),
             'print/screenshot interval' : printerval,
             'penalty voor validation' : validation_penalty
-            }        
-    with open(dirName + 'cfg.txt', 'w') as f:
+            }
+    
+    with open(dirName + 'info.txt', 'w') as f:
         for name,value in config_dict.items():
-            f.write("%s: %s\n" %(name,value))
+            f.write("{}: {}\n".format(name,value))
             
 def smooth(myList,N):
     cumsum, moving_aves = [0], []
@@ -156,7 +162,7 @@ loss_hist = [] #loss per keer getraind
 epsilon_hist = [] #ter vergelijking om naast de andere resultaten te houden
 beloning_hist = [] #slaat beloning op
 diff_hist = [] #verschil tussen behaalde beloning en beloning van een 100% willekeurige agent
-val_hist = [] #beloningen met steeds dezelfde penalty(0.7) die een simulatie zonder random factor gebruikt ter vergelijking
+val_hist = [] #beloningen met steeds dezelfde penalty en moeilijkheidsgraad, zonder willekeur
 cijfer_hist = [] #cijfer zonder penalty aftrek
 fixed_hist = [] #de cijfers geïsoleerd uit cijfer_hist, waar een specifiek aantal uren is geleerd, ter vergelijking met de 'grade predict only' aanpak 
 frequentie_hist = [] #houdt bij hoe vaak wordt geleerd
@@ -239,7 +245,7 @@ print('penalty 0.1',sim.plot(uren, 0.1))
 
 
 print('Gemiddelde beloning laatste duizend:',mean(beloning_hist[-1000:]))
-print('Gemiddeld verschil met willekeurig kiezen laatste duizen:',mean(diff_hist[-1000:]))
+print('Gemiddeld verschil met willekeurig kiezen laatste duizend:',mean(diff_hist[-1000:]))
 
 
 N = min(round(reached/1000),1)

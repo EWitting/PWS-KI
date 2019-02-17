@@ -48,9 +48,7 @@ class agent: #de agent is het machine learning gedeelte dat cijfers voorspelt
         else:
             self.model = self.createModel() #start functie om model te maken en bewaar het in self.model
         
-        
-        
-        
+    
     def createModel(self):
         if self.prints > 1: 
             print('Model initiatie...')
