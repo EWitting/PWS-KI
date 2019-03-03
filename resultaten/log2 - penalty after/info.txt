@@ -1,0 +1,19 @@
+versie:: D:\School\PWS\Python\Github\PenaltyAfter
+epsilon verval: 0.99985
+epsilon minimum: 0.01
+geheugen grootte: 100000
+batch size: 64
+max. epochs: 50000
+max. seconden: 600
+werkelijk aantal epochs: 31750
+werkelijk aantal seconden: 610.4
+epochs per seconde:: 52.01
+gemiddelde van laatste procent loss: 0.253
+gemiddelde van laatste procent beloning: 3.673
+gemiddelde van laatste procent controle: 3.07
+gemiddelde van laatste procent alleen 3 uren cijfer: 4.953
+print/screenshot interval: 250
+penalty voor validation: 0.7
+penalty domein voor train: 0.1-0.8
+random agent uren: 3
+uren voor vergelijking met grade prediction only: 3

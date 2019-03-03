@@ -58,3 +58,4 @@ class Simulatie():
         plt.plot(hist)
         plt.show()
         return self.toets(0.1)  
+

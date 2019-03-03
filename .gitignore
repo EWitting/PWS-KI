@@ -5,5 +5,7 @@ test.py
 YesNoPrediction/log*/
 GradePredictionOPnly/log*/
 PenaltyAfter/log*/
-!YesNoPrediction/log6/
+!resultaten/
+resultaten/*/screenshots/
+
 hist/

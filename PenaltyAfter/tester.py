@@ -16,12 +16,12 @@ from six.moves import cPickle
 import os
 
 
-testRange = 75000
+testRange = 50000
 printerval = 250
-max_uren = 5
-maxTime = 60*0.1 #in seconden
+max_uren = 3 #voor randomAgent
+maxTime = 60*10 #in seconden
 reached = 0
-vast_uren = 5 #ter vergelijking met grade prediction only
+vast_uren = 3 #ter vergelijking met grade prediction only
 validation_penalty = 0.7 #penalty die wordt gebruikt om de voortgang te testen
 
 #tussen bs_epochs_start en bs_epochs_max wordt de batch_size voor het trainen verhoogd.  https://arxiv.org/abs/1711.00489
@@ -31,7 +31,7 @@ bs_epochs_start = 500
 bs_epochs_max = 4000
 batch_size = batch_size_start
 bs = 64
-
+penalty_range = (0.1,0.8)
 ai = model.agent(0)
 
         #zondag
@@ -86,6 +86,7 @@ def saveStats(dictionary, plotten):
     
     #sla parameters op
     config_dict = { 
+            'versie' : os.getcwd(),
             'epsilon verval' : ai.epsilon_verval,
             'epsilon minimum': ai.epsilon_min,
             'geheugen grootte' :ai.memory_len,
@@ -94,12 +95,16 @@ def saveStats(dictionary, plotten):
             'max. seconden': maxTime,
             'werkelijk aantal epochs' : reached,
             'werkelijk aantal seconden':round(time.time() - t0,1),
-            'epochs per seconde:' : round(reached/(time.time() - t0),2),
-            'gemiddelde van laatste procent loss' : round(mean(loss_hist[-round(len(loss_hist/100)):]),3),
-            'gemiddelde van laatste procent beloning' : round(mean(beloning_hist[-round(len(beloning_hist/100)):]),3),
-            'gemiddelde van laatste procent controle' : round(mean(val_hist[-round(len(val_hist/100)):]),3),
+            'epochs per seconde' : round(reached/(time.time() - t0),2),
+            'gemiddelde van laatste procent loss' : round(mean(loss_hist[-round(len(loss_hist)/100):]),3),
+            'gemiddelde van laatste procent beloning' : round(mean(beloning_hist[-round(len(beloning_hist)/100):]),3),
+            'gemiddelde van laatste procent controle' : round(mean(val_hist[-round(len(val_hist)/100):]),3),
+            'gemiddelde van laatste procent alleen {} uren'.format(vast_uren) : round(mean(fixed_hist[-round(len(fixed_hist)/100):]),3),
             'print/screenshot interval' : printerval,
-            'penalty voor validation' : validation_penalty
+            'penalty voor validation' : validation_penalty,
+            'penalty domein voor train': str(penalty_range[0])+ '-' + str(penalty_range[1]),
+            'random agent uren' : max_uren,
+            'uren voor vergelijking met grade prediction only': vast_uren
             }
     
     with open(dirName + 'info.txt', 'w') as f:
@@ -119,8 +124,8 @@ def smooth(myList,N):
 
 def randomAgent(schema, factor, penalty):
     sim = simulatie.Simulatie(factor)
-    
-    return sim.simuleer(randomUren(schema),0.1,penalty)[1]
+    uren = randomUren(schema)
+    return sim.simuleer(uren,0.1) - penalty*sum(uren)
 
 def randomUren(schema):
     beschikbaar = []
@@ -171,25 +176,24 @@ done = False
 for i in range(testRange):
     if not done:
         factor = random.uniform(0.5,0.9)
-        penalty = random.uniform(0.1,1.5)
-        beloning, leeruren, ID = ai.voorspel(schema,factor,True,0,0.1,penalty)
+        penalty = random.uniform(penalty_range[0],penalty_range[1])
+        cijfer, leeruren, ID = ai.voorspel(schema,factor,True,0,0.1,penalty)
+        cijfer_hist.append(cijfer)
+        
+        frequentie = sum(leeruren)        
+        frequentie_hist.append(frequentie)                
+        beloning = round(cijfer - frequentie*penalty)
         
         #statistieken
         diff = beloning - randomAgent(schema,factor, penalty)
         beloning_hist.append(beloning)
         diff_hist.append(diff)
-        validation = (ai.voorspel(schema,0.8,False,0,0,0.7)[0])
+        val = ai.voorspel(schema,0.8,False,0,0,validation_penalty)
+        validation = round(val[0] - sum(val[1])*validation_penalty,1)
         val_hist.append(validation)
         
-        epsilon_hist.append(ai.epsilon)
-        
-        frequentie = sum(leeruren)        
-        frequentie_hist.append(frequentie)
-        
-        cijfer = beloning + frequentie*penalty
-        cijfer_hist.append(cijfer)
-        
-        
+        epsilon_hist.append(ai.epsilon)      
+       
         if sum(leeruren) == vast_uren:
             fixed_hist.append(cijfer)
         
@@ -206,7 +210,7 @@ for i in range(testRange):
             loss_hist.append(ai.train(batch_size))
             
         if i % round(printerval) == 0 and i is not 0:
-            string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Validation: {1}, Cijfer: {2}, Batch Size {3}, Epsilon: {4}, ID: {7}, penalty: {8}, loss: {9}, aantal experiences: {10}'
+            string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Validation: {1}, Beloning: {2}, Batch Size {3}, Epsilon: {4}, ID: {7}, penalty: {8}, loss: {9}, aantal experiences: {10}'
             output = string.format(i,validation ,beloning ,batch_size ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID.replace('0',''),round(penalty,1),round(loss_hist[len(loss_hist)-1],2), len(ai.memory))
             outputs.append(output)
             print(output)
@@ -226,29 +230,29 @@ os.makedirs(dirName+'penalty_test')
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,1.5)
 visualiseer(schema,uren,True,dirName[2:] + 'penalty_test/penalty' + '1.5')
 sim = simulatie.Simulatie(0.8)
-print('met penalty 1.5',sim.plot(uren, 1.5))
+print('met penalty 1.5',sim.plot(uren))
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,1)
 visualiseer(schema,uren,True,dirName[2:] + 'penalty_test/penalty' + '1')
 sim = simulatie.Simulatie(0.8)
-print('penalty 1',sim.plot(uren, 1))
+print('penalty 1',sim.plot(uren))
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,0.5)
 visualiseer(schema,uren,True,dirName[2:] + 'penalty_test/penalty' + '0.5')
 sim = simulatie.Simulatie(0.8)
-print('penalty 0.5',sim.plot(uren, 0.5))
+print('penalty 0.5',sim.plot(uren))
 
 cijfer, uren, ID = ai.voorspel(schema, 0.75,False,0,0.1,0.1)
 visualiseer(schema,uren,True,dirName[2:] + 'penalty_test/penalty' + '0.1')
 sim = simulatie.Simulatie(0.8)
-print('penalty 0.1',sim.plot(uren, 0.1))
+print('penalty 0.1',sim.plot(uren))
 
 
 print('Gemiddelde beloning laatste duizend:',mean(beloning_hist[-1000:]))
 print('Gemiddeld verschil met willekeurig kiezen laatste duizend:',mean(diff_hist[-1000:]))
 
 
-N = min(round(reached/1000),1)
+N = max(round(reached/200),1)
 
 #alles opslaan
 saveStats({
@@ -270,7 +274,7 @@ saveStats({
           'cijfer_smooth' : smooth(cijfer_hist,N),
           
           'alleen_'+str(vast_uren)+'_uren' : fixed_hist,
-          'alleen_'+str(vast_uren)+'_uren_smooth' : smooth(fixed_hist,round(N/4)),
+          'alleen_'+str(vast_uren)+'_uren_smooth' : smooth(fixed_hist,max(round(N/4),1)),
           
           'aantal_uren_per_week' : frequentie_hist,
           'aantal_uren_per_week_smooth' : smooth(frequentie_hist,N)

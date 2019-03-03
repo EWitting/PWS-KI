@@ -9,9 +9,9 @@ import os
 from six.moves import cPickle
 
 
-testRange = 25000
+testRange = 35000
 printOp = 500
-max_uren = 5
+max_uren = 3
 maxTime = 600 #in seconden
 reached = 0
 
@@ -34,6 +34,7 @@ schema =[False,False,False,False,False,False,False,False,False,True ,True ,True 
 hist = []
 diffs = []
 test = []
+bs = 64
 
 #vind nummer voor nieuwe folder die nog niet is gebruikt
 logNum = 0    
@@ -41,7 +42,7 @@ while(os.path.exists("./log"+str(logNum))):
     logNum += 1
 dirName = './log' + str(logNum) +'/'
 os.makedirs(dirName + 'screenshots')
-
+print('outputting to',dirName)
 
 #gebruikt als input namen en lists, slaat ze ge-pickled op als ruwe data, en als pyplot grafiek
 def saveStats(dictionary):     
@@ -60,6 +61,28 @@ def saveStats(dictionary):
     with open(dirName + 'model_summary.txt', 'w') as f:
         ai.model.summary(print_fn=lambda x: f.write(x + '\n'))    
         
+    #sla parameters op
+    config_dict = { 
+            'versie' : os.getcwd(),
+            'epsilon verval' : ai.epsilon_verval,
+            'epsilon minimum': ai.epsilon_min,
+            'geheugen grootte' :ai.memory_len,
+            'batch size' :bs,
+            'max. epochs': testRange,
+            'max. seconden': maxTime,
+            'werkelijk aantal epochs' : reached,
+            'werkelijk aantal seconden':round(time.time() - t0,1),
+            'epochs per seconde' : round(reached/(time.time() - t0),2),
+            'gemiddelde van laatste procent cijfer' : round(mean(hist[-round(len(hist)/100):]),3),
+            'gemiddelde van laatste procent controle' : round(mean(test[-round(len(test)/100):]),3),
+            'gemiddelde van laatste procent verschil met random' : round(mean(diffs[-round(len(diffs)/100):]),3),
+            'uren per week': max_uren
+            }
+    
+    with open(dirName + 'info.txt', 'w') as f:
+        for name,value in config_dict.items():
+            f.write("{}: {}\n".format(name,value))
+            
 def smooth(myList,N):
     cumsum, moving_aves = [0], []
 
@@ -113,8 +136,9 @@ for i in range(testRange):
         diffs.append(diff)
         validation = (ai.voorspel(schema,0.8,False,0,0)[0])
         test.append(validation)
-        if i% 10 == 0 and i is not 0:
-            ai.train(min(max_uren*i,16))
+        if i% round(bs/4) == 0 and i > bs:
+            ai.train(max(max_uren*i,bs))
+            
         if i % round(printOp) == 0 and i is not 0:
             string = 'Bezig: {6} sec, ETA: {5} sec, Simulatie: {0}, Validation: {1}, Cijfer: {2}, Verschil met controle: {3}, Epsilon: {4}, ID: {7}'
             print(string.format(i,validation ,resultaat ,round(diff,1) ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID))
@@ -154,7 +178,7 @@ sim = simulatie.Simulatie(0.8)
 print('penalty 0.1',sim.plot(uren, 0.1))
 
 
-N = round(reached/20)
+N = round(reached/200)
 
 smoothHist = smooth(hist,N)
 plt.plot(smoothHist)

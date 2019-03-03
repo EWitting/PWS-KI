@@ -16,12 +16,12 @@ from six.moves import cPickle
 import os
 
 
-testRange = 75000
+testRange = 50000
 printerval = 250
-max_uren = 5
-maxTime = 60*0.1 #in seconden
+max_uren = 3
+maxTime = 60*10 #in seconden
 reached = 0
-vast_uren = 5 #ter vergelijking met grade prediction only
+vast_uren = 3 #ter vergelijking met grade prediction only
 validation_penalty = 0.7 #penalty die wordt gebruikt om de voortgang te testen
 
 #tussen bs_epochs_start en bs_epochs_max wordt de batch_size voor het trainen verhoogd.  https://arxiv.org/abs/1711.00489
@@ -31,7 +31,7 @@ bs_epochs_start = 500
 bs_epochs_max = 4000
 batch_size = batch_size_start
 bs = 64
-
+penalty_range = (0.1,0.8)
 ai = model.agent(0)
 
         #zondag
@@ -86,6 +86,7 @@ def saveStats(dictionary, plotten):
     
     #sla parameters op
     config_dict = { 
+            'versie' : os.getcwd(),
             'epsilon verval' : ai.epsilon_verval,
             'epsilon minimum': ai.epsilon_min,
             'geheugen grootte' :ai.memory_len,
@@ -94,12 +95,16 @@ def saveStats(dictionary, plotten):
             'max. seconden': maxTime,
             'werkelijk aantal epochs' : reached,
             'werkelijk aantal seconden':round(time.time() - t0,1),
-            'epochs per seconde:' : round(reached/(time.time() - t0),2),
-            'gemiddelde van laatste procent loss' : round(mean(loss_hist[-round(len(loss_hist/100)):]),3),
-            'gemiddelde van laatste procent beloning' : round(mean(beloning_hist[-round(len(beloning_hist/100)):]),3),
-            'gemiddelde van laatste procent controle' : round(mean(val_hist[-round(len(val_hist/100)):]),3),
+            'epochs per seconde' : round(reached/(time.time() - t0),2),
+            'gemiddelde van laatste procent loss' : round(mean(loss_hist[-round(len(loss_hist)/100):]),3),
+            'gemiddelde van laatste procent beloning' : round(mean(beloning_hist[-round(len(beloning_hist)/100):]),3),
+            'gemiddelde van laatste procent controle' : round(mean(val_hist[-round(len(val_hist)/100):]),3),
+            'gemiddelde van laatste procent alleen {} uren'.format(vast_uren) : round(mean(fixed_hist[-round(len(fixed_hist)/100):]),3),
             'print/screenshot interval' : printerval,
-            'penalty voor validation' : validation_penalty
+            'penalty voor validation' : validation_penalty,
+            'penalty domein voor train': str(penalty_range[0])+ '-' + str(penalty_range[1]),
+            'random agent uren' : max_uren,
+            'uren voor vergelijking met grade prediction only': vast_uren
             }
     
     with open(dirName + 'info.txt', 'w') as f:
@@ -171,7 +176,7 @@ done = False
 for i in range(testRange):
     if not done:
         factor = random.uniform(0.5,0.9)
-        penalty = random.uniform(0.1,1.5)
+        penalty = random.uniform(penalty_range[0],penalty_range[1])
         beloning, leeruren, ID = ai.voorspel(schema,factor,True,0,0.1,penalty)
         
         #statistieken
@@ -248,7 +253,7 @@ print('Gemiddelde beloning laatste duizend:',mean(beloning_hist[-1000:]))
 print('Gemiddeld verschil met willekeurig kiezen laatste duizend:',mean(diff_hist[-1000:]))
 
 
-N = min(round(reached/1000),1)
+N = max(round(reached/200),1)
 
 #alles opslaan
 saveStats({
