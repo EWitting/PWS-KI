@@ -15,8 +15,8 @@ background_colour = (50,50,50)
 
    
 schema =[False,False,False,False,False,False,False,False,False,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,False,False,False,False,False,False,False,False,False,False,False ,False,False,False,False,False,False,False,False,True,True ,False ,False ,False,False,False,False,False,False,False,False,False,False,False,False ,False,False,False,False,False,False,False,True,True,True ,True ,False ,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,True,True,True,True,False,False,False,False,False,False,False,False,False,False,False ,False,False,False,False,False,False,False,False,True,True ,False ,False ,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False,False]
-penalty = 0.5
-max_penalty = 0.9
+penalty = 1.5
+max_penalty = 1.5
 moeilijkheidsfactor = 0.9
 ai = model.agent(load = 'model.h5')
 ai.epsilon = 0
