@@ -1,0 +1,14 @@
+versie: D:\School\PWS\Python\Github\random_schema\GradePredictionOPnly
+epsilon verval: 0.99985
+epsilon minimum: 0.01
+geheugen grootte: 100000
+batch size: 64
+max. epochs: 35000
+max. seconden: 600
+werkelijk aantal epochs: 12000
+werkelijk aantal seconden: 628.5
+epochs per seconde: 19.09
+gemiddelde van laatste procent cijfer: 4.037
+gemiddelde van laatste procent controle: 4.633
+gemiddelde van laatste procent verschil met random: -0.006
+uren per week: 3

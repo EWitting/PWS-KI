@@ -14,7 +14,7 @@ import simulatie
 #voor laad- en opsla
 from six.moves import cPickle
 import os
-
+from week_generator import genereer_week
 
 testRange = 50000
 printerval = 250
@@ -35,7 +35,7 @@ penalty_range = (0.1,0.8)
 ai = model.agent(0)
 
         #zondag
-schema =[False,False,False,False,False,False,False,False,False,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,False,False,False,False,
+oud_schema =[False,False,False,False,False,False,False,False,False,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,True ,False,False,False,False,
         #maadag
         False,False,False,False,False,False,False ,False,False,False,False,False,False,False,False,True,True ,False ,False ,False,False,False,False,False,
         #dinsdag
@@ -175,6 +175,7 @@ frequentie_hist = [] #houdt bij hoe vaak wordt geleerd
 done = False
 for i in range(testRange):
     if not done:
+        schema = genereer_week()
         factor = random.uniform(0.5,0.9)
         penalty = random.uniform(penalty_range[0],penalty_range[1])
         beloning, leeruren, ID = ai.voorspel(schema,factor,True,0,0.1,penalty)
@@ -183,7 +184,7 @@ for i in range(testRange):
         diff = beloning - randomAgent(schema,factor, penalty)
         beloning_hist.append(beloning)
         diff_hist.append(diff)
-        validation = (ai.voorspel(schema,0.8,False,0,0,0.7)[0])
+        validation = (ai.voorspel(oud_schema,0.8,False,0,0,0.7)[0])
         val_hist.append(validation)
         
         epsilon_hist.append(ai.epsilon)
@@ -215,7 +216,7 @@ for i in range(testRange):
             output = string.format(i,validation ,beloning ,batch_size ,round(ai.epsilon,2),eta(i),round(time.time() - t0), ID.replace('0',''),round(penalty,1),round(loss_hist[len(loss_hist)-1],2), len(ai.memory))
             outputs.append(output)
             print(output)
-            visualiseer(schema,ai.voorspel(schema,0.75,False,0,0,validation_penalty)[1],True,dirName[2:]+'screenshots/'+str(i))
+            visualiseer(oud_schema,ai.voorspel(oud_schema,0.75,False,0,0,validation_penalty)[1],True,dirName[2:]+'screenshots/'+str(i))
             if time.time() - t0 > maxTime:
                 done = True
                 if reached is 0:

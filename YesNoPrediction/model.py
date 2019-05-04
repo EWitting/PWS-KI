@@ -58,8 +58,9 @@ class agent: #de agent is het machine learning gedeelte dat cijfers voorspelt
         #lagen toevoegen:
         #dense: betekent dat elke neuron verbonden is met een elk neuron in de volgende laag
         #input dim: bepaalt het aantal factoren dat als invoer wordt gebruikt
-        #activation: de functie die aan elk neuron wordt toegevoegd, sigmoid is om elk getal tussen 0 en 1 te "proppen".
-        #Dit voorkomt dat factoren met gemiddeld grote getallen meer invloed hebben op de uitkomst
+        #activation: de functie die op de waarde van elk neuron wordt toegepast, sigmoid is om elk getal tussen 0 en 1 te "proppen".
+        #Dit voorkomt dat factoren met gemiddeld grote getallen te veel invloed krijgen in tegenstelling tot de andere invoer factors.
+        #16 is hier het aantal neuronen in de eerste laag(na de inputlaag)
         network.add(Dense(16,input_dim = self.input_size,activation='sigmoid'))
 
         #linear betekent dat geen speciale functie wordt gebruikt
@@ -71,7 +72,8 @@ class agent: #de agent is het machine learning gedeelte dat cijfers voorspelt
         
         network.add(Dense(8, activation = 'linear'))        
 
-        #één output in de laatste laag, namelijk het verwachtte cijfer. softplus maakt alle getallen positief(de negatieve getallen zullen wel altijd kleiner blijven) om beter mee te kunnen werken
+        #één output in de laatste laag, namelijk het verwachtte cijfer. softplus maakt alle getallen positief
+        #(de negatieve getallen zullen wel altijd kleiner blijven) om beter mee te kunnen werken
         network.add(Dense(2,activation = 'softplus'))
 
         #parameters voor keras instellen, dit zijn de gebruikelijkste standaard parameters

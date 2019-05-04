@@ -17,3 +17,5 @@ penalty voor validation: 0.7
 penalty domein voor train: 0.1-0.8
 random agent uren: 3
 uren voor vergelijking met grade prediction only: 3
+
+
